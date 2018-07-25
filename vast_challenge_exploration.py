@@ -16,6 +16,7 @@ import seaborn as sns
 
 def get_frequency_counts(df):
     ##Probabaly better to find the overall min and max and use that across all data
+    
     min_time = min(df['TimeStamp'])
     max_time = max(df['TimeStamp'])
     print(max_time)
@@ -37,6 +38,19 @@ def get_frequency_counts(df):
                    unique_to, data_splits)
         time_splits.append([start_time, end_time])
     return data_splits, time_splits
+
+##Need a good way of determining the days of the week that the data occurs on, and the hour
+##Data starts May 11th 2015, at 14:00
+#Due to this, lets normalize the data and add 50400 seconds to all timestamps to make it easier to reference. time 0
+##Normal workday is : 5am-8pm 05:00- 20:00
+##So times 0-18000 seconds in the weekday are outside the workday, and 
+#Times 72000-86400 are outsides the workday
+##86400 seconds in a day, first day begins at 
+#50400 seconds into the day
+#604800 seconds in the week 
+#The first 432000 seconds are the work week.
+#So if we do say 650000 % 604800 we get just the remainder, making it easier to deal in just weeks
+#same could be applied to days ie 
 
 def parse_data(df, quarter, start_time, end_time, frequency_counts, 
                unique_from, unique_to, data_splits):
