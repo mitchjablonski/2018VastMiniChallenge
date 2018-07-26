@@ -19,9 +19,10 @@ def get_frequency_counts(df):
     
     min_time = min(df['TimeStamp'])
     max_time = max(df['TimeStamp'])
-    print(max_time)
+    print(max_time < 2.7 * 366 * 24 * 60 *60)
+    #83319987 83319974 83319949
     #Should probably use min_time = 0
-    #Max time = 2.5 * 366 * 24 * 60 *60
+    #Max time = 2.7 * 366 * 24 * 60 *60
     time_split = 2.5*4 #number of quarters data exists over
     time_delta = max_time - min_time
     time_steps = time_delta/time_split
@@ -71,9 +72,10 @@ def get_frequency_counts_sus(df, time_splits):
     frequency_counts = {}#defaultdict(list)
     unique_from = {}
     unique_to = {}
-    for quarter, times in enumerate(time_splits):
-        start_time = times[0]
-        end_time = times[1]
+    #for quarter, times in enumerate(time_splits):
+    for quarter, (start_time, end_time) in enumerate(time_splits):
+        #start_time = times[0]
+        #end_time = times[1]
         parse_data(df, quarter, start_time, end_time, 
                    frequency_counts, unique_from, unique_to, data_splits)
     return data_splits
