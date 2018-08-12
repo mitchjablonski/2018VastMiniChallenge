@@ -8,11 +8,9 @@ import pandas as pd
 
 def investigate_data(input_df, data_type):
     output_data = pd.DataFrame()
-    #temp_data['data_amount'.format(data_type)] = input_df.month_yr.value_counts()
-    #temp_data['month_yr'] = temp_data.index
-    #temp_data['data_type'] = data_type
+    input_df = input_df.copy()
+    input_df.sort_values(by='full_date', inplace=True)
     grouped = input_df.groupby('month_yr')
-    #unique = grouped['Source'].nunique()
     prev_month_unique_source = []
     prev_month_unique_dest   = []
     curr_month_unique_source = []

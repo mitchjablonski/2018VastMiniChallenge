@@ -17,6 +17,7 @@ import date_time_conversion as dt_converter
 import high_level_investigation as high_level_investigation
 import math
 import add_names_to_df as get_names_from_company_index
+import networkx as nx
 
 
 
@@ -70,12 +71,14 @@ def compare_purchases_for_gail(use_preprocess, columns):
     return purchases_described
 
 def determine_metrics_for_purchase(input_df):
+    input_df = input_df.copy()
     unique_sources = input_df['Source'].nunique()
     unique_destinations = input_df['Destination'].nunique()
     total_interactions  =input_df.count()[0]
     int_per_source = math.ceil(total_interactions/unique_sources)
     int_per_dest   = math.ceil(total_interactions/unique_destinations)
     input_df['full_date'] = pd.to_datetime(input_df['full_date'])
+    input_df.sort_values(by='full_date', inplace=True)
     mean_time_between  = input_df['full_date'].diff().mean()
     return (unique_sources, unique_destinations, 
             total_interactions, int_per_source, 
@@ -86,9 +89,11 @@ def purchase_analysis(purchase_row, input_df):
     source = purchase_row['Source']
     destination = purchase_row['Destination']
     purchase_time = purchase_row['TimeStamp']
-    seconds_in_month = int(2.628e+6)
-    start_time = purchase_time - seconds_in_month
-    stop_time  = purchase_time + seconds_in_month
+    #seconds_in_month = int(2.628e+6)
+    seconds_in_five_days = int(432000)
+    time_window = seconds_in_five_days
+    start_time = purchase_time - time_window
+    stop_time  = purchase_time + time_window
     filtered_df = input_df[(input_df['TimeStamp'] > start_time) &
                       (input_df['TimeStamp'] < stop_time)]
     ##Our destination in the suspicous purchase, is actaully the only interaction
@@ -102,7 +107,7 @@ def purchase_analysis(purchase_row, input_df):
     
     return filtered_df
     
-def analyze_confirmed_suspicious(columns):
+def analyze_confirmed_suspicious(columns, replace_dict, main_df):
     sus_purchase = pd.read_csv('Suspicious_purchases.csv', names=columns)
     sus_purchase = dt_converter.convert_time(sus_purchase)
     sus_purchase_row = sus_purchase.iloc[0]
@@ -115,9 +120,18 @@ def analyze_confirmed_suspicious(columns):
     sus_df = dt_converter.convert_time(sus_df)
     sus_df.sort_values('full_date', inplace=True)
     sus_analysis_df = purchase_analysis(sus_purchase_row, sus_df)
-    sus_analysis_df['Etype'].replace(replace_dict, inplace=True)
-    sus_analysis_df = get_names_from_company_index.add_names_to_data_frame(sus_analysis_df)
-    sus_analysis_df.to_csv('suspected_suspicious/confirmed_suspicious.csv')
+    filename = 'suspected_suspicious/confirmed_suspicious.csv'
+    sus_analysis_df = record_purchase_information(filename, sus_analysis_df, replace_dict)
+    perform_network_analysis(sus_analysis_df)
+    
+    sus_analysis_full_df = purchase_analysis(sus_purchase_row, main_df)
+    filename = 'suspected_suspicious/confirmed_suspicious_full_set.csv'
+    sus_analysis_full_df = record_purchase_information(filename, sus_analysis_full_df, replace_dict)
+    perform_network_analysis(sus_analysis_full_df)
+    print('full_df')
+    print(determine_metrics_for_purchase(sus_analysis_full_df))
+    
+    print('only_sus_df')
     return determine_metrics_for_purchase(sus_analysis_df)
 
 def record_purchase_information(filename, data_frame, replace_dict):
@@ -134,40 +148,49 @@ def analyze_suspected_suspicious(main_df, replace_dict):
     for index, rows in other_suspicious.iterrows():
         analysis_df = purchase_analysis(rows, main_df)
         filename = ('suspected_suspicious/suspected_suspicous_{}_{}_{}.csv'.format(rows['Source'], 
-                                                                                           rows['Destination'],
-                                                                                           rows['TimeStamp']))
+                                                                                   rows['Destination'],
+                                                                                   rows['TimeStamp']))
         analysis_df = record_purchase_information(filename, analysis_df, replace_dict)
+        perform_network_analysis(analysis_df)
         print(determine_metrics_for_purchase(analysis_df))
 
 def analyze_all_purchases(main_df, replace_dict, purchase_df):
     purchase_df.reset_index(inplace=True)
     print('In all purchase region')
     for index, rows in purchase_df.iterrows():
-        analysis_df = purchase_analysis(rows, main_df)
-        if (index // 100) == 1:
+        #analysis_df = purchase_analysis(rows, main_df)
+        if (index % 100) == 1:
             print('index {}'.format(index))
-        if index < 5:
-            print('here')
+        if index >6000 and index < 6005:
+            analysis_df = purchase_analysis(rows, main_df)
             filename = ('regular_purchases/regular_purchases_{}_{}_{}.csv'.format(rows['Source'], 
-                                                                                           rows['Destination'],
-                                                                                           rows['TimeStamp']))
+                                                                                  rows['Destination'],
+                                                                                  rows['TimeStamp']))
             analysis_df = record_purchase_information(filename, analysis_df, replace_dict)
             print(determine_metrics_for_purchase(analysis_df))
             ##Most have way more unique sources, destinations, and total interactions.
             ##Most peoples time delta is significantly less, IE  < 1hr?
+            
+            ##Should consider taking a look at the amount of purchases our suspicious folks have made
             '''
             (unique_sources, unique_destinations, 
             total_interactions, int_per_source, 
             int_per_dest, mean_time_between)
             '''
-
+            perform_network_analysis(analysis_df)
+            
+def perform_network_analysis(input_df):
+    FG = nx.from_pandas_edgelist(input_df, source='Source_Names', target='Destination_Names', edge_attr=True,)
+    nodes = (FG.nodes())
+    edges = (FG.edges())
+    nx.draw_networkx(FG, with_labels=True)
+    degree_cent = (nx.algorithms.degree_centrality(FG))
+    density =(nx.density(FG))
+    avg_shortest = (nx.average_shortest_path_length(FG))
+    avg_degree_connectivity = (nx.average_degree_connectivity(FG))
+    print(degree_cent, density, avg_shortest, avg_degree_connectivity)
+    
 def perform_deep_purchase_analysis(columns, replace_dict):
-    (unique_sources, unique_destinations, 
-     total_interactions, int_per_source, 
-     int_per_dest, mean_time_between) = analyze_confirmed_suspicious(columns)
-    print(unique_sources, unique_destinations, 
-     total_interactions, int_per_source, 
-     int_per_dest, mean_time_between)
     main_df = pd.DataFrame()
     for data in data_types:
         print(data)
@@ -175,10 +198,29 @@ def perform_deep_purchase_analysis(columns, replace_dict):
         if data == 'purchases':
             gail_id = get_gail_id(curr_data)
             ##TOO many purchases to look at gail, drop all including gail
+            purchase_df_with_gail = curr_data
             purchase_df = curr_data[(curr_data['Source'] != gail_id) & 
                           (curr_data['Destination'] != gail_id)]
         else:
             main_df = main_df.append(curr_data, ignore_index = True)
+        
+        print('full df with gail')
+        full_df_network = pd.DataFrame()
+        full_df_network = full_df_network.append([purchase_df_with_gail, main_df])
+        perform_network_analysis(full_df_network)
+        
+        print('full df without gail')
+        full_df_network = pd.DataFrame()
+        full_df_network = full_df_network.append([purchase_df, main_df])
+        perform_network_analysis(full_df_network)
+            
+    (unique_sources, unique_destinations, 
+     total_interactions, int_per_source, 
+     int_per_dest, mean_time_between) = analyze_confirmed_suspicious(columns, replace_dict, main_df)
+    
+    print(unique_sources, unique_destinations, 
+          total_interactions, int_per_source, 
+          int_per_dest, mean_time_between)
     analyze_suspected_suspicious(main_df, replace_dict)
     analyze_all_purchases(main_df, replace_dict, purchase_df)
     #purchase_analysis_df = purchase_analysis(sus_source, sus_destination, purchase_time, main_df)
@@ -199,6 +241,7 @@ def _main(columns, data_types, replace_dict,
         described_data['date_time'] = pd.to_datetime(described_data['month_yr'])
         described_data.sort_values(by='date_time',inplace=True)
         described_data.to_csv('data_described_frequency_v2.csv')
+        
     if compare_purchase_gail:
         purchases_described = compare_purchases_for_gail(use_preprocess, columns)
         
