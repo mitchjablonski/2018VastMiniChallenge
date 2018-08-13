@@ -81,16 +81,7 @@ def determine_metrics_for_purchase(input_df):
             int_per_dest, mean_time_between)
     
 def determine_layers_out(input_df, purchase_row):
-    output_df = input_df.copy()
-    seconds_in_month = int(2.628e+6)
-    #seconds_in_five_days = int(432000)
-    time_window = seconds_in_month
-    
-    start_time = purchase_row['TimeStamp'] - time_window
-    stop_time  = purchase_row['TimeStamp'] + time_window
-    output_df = output_df[(output_df['TimeStamp'] > start_time) &
-                      (output_df['TimeStamp'] < stop_time)]
-    
+    output_df = input_df.copy()    
     source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
     #dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
     #temp_df = output_df[source_dest | dest_source]
@@ -108,25 +99,44 @@ def determine_layers_out(input_df, purchase_row):
         temp_cols, _ = temp_df.shape
     
     print(layers)
-    print(temp_df['Source'].nunique())
-    print(temp_df['Destination'].nunique())
+    print('Number unique Sources {}'.format(temp_df['Source'].nunique()))
+    print('Number Unique Destination {}'.format(temp_df['Destination'].nunique()))
+    print('Total Number of entries {}'.format(temp_df['Source'].count()))
+    print('Forcing layers to be 1')
+    layers=1
     return layers
 
 def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers):
     temp_layers = 0 
     output_df = input_df.copy()
+    ##TODO is time limiting good here?
+    '''
+    seconds_in_month = int(2.628e+6)
+    #seconds_in_five_days = int(432000)
+    time_window = seconds_in_month
+    start_time = purchase_row['TimeStamp'] - time_window
+    stop_time  = purchase_row['TimeStamp'] + time_window
+    output_df = output_df[(output_df['TimeStamp'] > start_time) &
+                      (output_df['TimeStamp'] < stop_time)]
+    '''
+    ##TODO
     source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
     #dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
     #temp_df = output_df[source_dest | dest_source]
     temp_df = output_df[source_dest]
     while temp_layers < layers:
         source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
+        if layers == 1:
+            source_dest = (source_dest | (output_df['Destination'].isin([purchase_row['Source']])) | 
+                                        (output_df['Source'].isin([purchase_row['Destination']])))
         #dest_source = (output_df['Source'].isin(temp_df['Destination'])) | (output_df['Destination'].isin(temp_df['Source']))
         #temp_df = output_df[source_dest | dest_source]
         temp_df = output_df[source_dest]
         temp_layers += 1
-    print(temp_df['Source'].nunique())
-    print(temp_df['Destination'].nunique())
+        print(layers)
+    print('Number unique Sources {}'.format(temp_df['Source'].nunique()))
+    print('Number Unique Destination {}'.format(temp_df['Destination'].nunique()))
+    print('Total Number of entries {}'.format(temp_df['Source'].count()))
 
 def purchase_analysis(purchase_row, input_df, layers):
     ##We will want to get all of their interactions that occured within a one month timeframe
@@ -134,9 +144,9 @@ def purchase_analysis(purchase_row, input_df, layers):
     source = purchase_row['Source']
     destination = purchase_row['Destination']
     purchase_time = purchase_row['TimeStamp']
-    #seconds_in_month = int(2.628e+6)
-    seconds_in_five_days = int(432000)
-    time_window = seconds_in_five_days
+    seconds_in_month = int(2.628e+6)
+    #seconds_in_five_days = int(432000)
+    time_window = seconds_in_month
     start_time = purchase_time - time_window
     stop_time  = purchase_time + time_window
     filtered_df = input_df[(input_df['TimeStamp'] > start_time) &
@@ -214,7 +224,7 @@ def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_netw
         #analysis_df = purchase_analysis(rows, main_df)
         if (index % 100) == 1:
             print('index {}'.format(index))
-        if index >6000 and index < 6005:
+        if index >6000 and index < 6012:
             analysis_df = purchase_analysis(rows, main_df, layers)
             filename = ('regular_purchases/regular_purchases_{}_{}_{}.csv'.format(rows['Source'], 
                                                                                   rows['Destination'],
@@ -316,7 +326,7 @@ if __name__ == '__main__':
     deep_purchase_analysis = True
     data_describe_processing = False
     compare_purchase_gail = False
-    build_network_graph = True
+    build_network_graph = False
     described_data, purchases_described = _main(columns, data_types, replace_dict,
                                                 use_preprocess, deep_purchase_analysis, 
                                                 data_describe_processing, compare_purchase_gail,
