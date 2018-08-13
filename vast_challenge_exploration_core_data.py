@@ -83,9 +83,46 @@ def determine_metrics_for_purchase(input_df):
     return (unique_sources, unique_destinations, 
             total_interactions, int_per_source, 
             int_per_dest, mean_time_between)
+    
+def determine_layers_out(input_df, purchase_row):
+    output_df = input_df.copy()
+    source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
+    dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
+    source_dest, dest_source = get_source_destination_mask_pairs(output_df, purchase_row)
+    temp_df = output_df[source_dest | dest_source]
+    print('determine_layers_out')
+    layers = 0
+    full_cols, _ = output_df.shape
+    temp_cols, _ = temp_df.shape
+    while temp_cols < full_cols:
+        source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
+        dest_source = (output_df['Source'].isin(temp_df['Destination'])) | (output_df['Destination'].isin(temp_df['Source']))
+        temp_df = output_df[source_dest | dest_source]
+        layers += 1
+        temp_cols, _ = temp_df.shape
+    print(temp_df['Source'].nunique())
+    print(temp_df['Destination'].nunique())
+    return layers
 
-def purchase_analysis(purchase_row, input_df):
+def get_source_destination_mask_pairs(input_df, temp_df): 
+    '''
+    Function info: temp_df my be an array or list like object.
+    '''    
+    source_dest = (input_df['Source'].isin([temp_df['Source']])) | (input_df['Destination'].isin([temp_df['Destination']]))
+    dest_source = (input_df['Source'].isin([temp_df['Destination']])) | (input_df['Destination'].isin([temp_df['Source']]))
+    return source_dest, dest_source
+
+def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers):
+    temp_layers = 0 
+    
+    while temp_layers < layers:
+        
+        
+        temp_layers += 1
+    pass
+def purchase_analysis(purchase_row, input_df, layers):
     ##We will want to get all of their interactions that occured within a one month timeframe
+    look_at_size_of_network_X_layers_out(input_df, purchase_row, layers)
     source = purchase_row['Source']
     destination = purchase_row['Destination']
     purchase_time = purchase_row['TimeStamp']
@@ -119,12 +156,15 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df):
     sus_df = sus_df.append([email_data, call_data, meeting_data])
     sus_df = dt_converter.convert_time(sus_df)
     sus_df.sort_values('full_date', inplace=True)
-    sus_analysis_df = purchase_analysis(sus_purchase_row, sus_df)
+    layers = determine_layers_out(sus_df, sus_purchase_row)
+    sus_analysis_df = purchase_analysis(sus_purchase_row, sus_df, layers)
+    
+    
     filename = 'suspected_suspicious/confirmed_suspicious.csv'
     sus_analysis_df = record_purchase_information(filename, sus_analysis_df, replace_dict)
     perform_network_analysis(sus_analysis_df)
     
-    sus_analysis_full_df = purchase_analysis(sus_purchase_row, main_df)
+    sus_analysis_full_df = purchase_analysis(sus_purchase_row, main_df, layers)
     filename = 'suspected_suspicious/confirmed_suspicious_full_set.csv'
     sus_analysis_full_df = record_purchase_information(filename, sus_analysis_full_df, replace_dict)
     perform_network_analysis(sus_analysis_full_df)
@@ -132,7 +172,7 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df):
     print(determine_metrics_for_purchase(sus_analysis_full_df))
     
     print('only_sus_df')
-    return determine_metrics_for_purchase(sus_analysis_df)
+    return determine_metrics_for_purchase(sus_analysis_df), layers
 
 def record_purchase_information(filename, data_frame, replace_dict):
     data_frame = data_frame.copy()
@@ -141,20 +181,21 @@ def record_purchase_information(filename, data_frame, replace_dict):
     data_frame.to_csv(filename)
     return data_frame
 
-def analyze_suspected_suspicious(main_df, replace_dict):
+def analyze_suspected_suspicious(main_df, replace_dict, layers):
     other_suspicious = pd.read_csv('Other_suspicious_purchases.csv')
     other_suspicious.rename(columns={'Dest':'Destination','Time':'TimeStamp'}, inplace=True)
     other_suspicious = dt_converter.convert_time(other_suspicious)
     for index, rows in other_suspicious.iterrows():
-        analysis_df = purchase_analysis(rows, main_df)
+        analysis_df = purchase_analysis(rows, main_df, layers)
         filename = ('suspected_suspicious/suspected_suspicous_{}_{}_{}.csv'.format(rows['Source'], 
                                                                                    rows['Destination'],
                                                                                    rows['TimeStamp']))
         analysis_df = record_purchase_information(filename, analysis_df, replace_dict)
         perform_network_analysis(analysis_df)
         print(determine_metrics_for_purchase(analysis_df))
+        look_at_size_of_network_X_layers_out(main_df, rows, layers)
 
-def analyze_all_purchases(main_df, replace_dict, purchase_df):
+def analyze_all_purchases(main_df, replace_dict, purchase_df, layers):
     purchase_df.reset_index(inplace=True)
     print('In all purchase region')
     for index, rows in purchase_df.iterrows():
@@ -162,7 +203,7 @@ def analyze_all_purchases(main_df, replace_dict, purchase_df):
         if (index % 100) == 1:
             print('index {}'.format(index))
         if index >6000 and index < 6005:
-            analysis_df = purchase_analysis(rows, main_df)
+            analysis_df = purchase_analysis(rows, main_df, layers)
             filename = ('regular_purchases/regular_purchases_{}_{}_{}.csv'.format(rows['Source'], 
                                                                                   rows['Destination'],
                                                                                   rows['TimeStamp']))
@@ -189,7 +230,11 @@ def perform_network_analysis(input_df):
     avg_shortest = (nx.average_shortest_path_length(FG))
     avg_degree_connectivity = (nx.average_degree_connectivity(FG))
     print(degree_cent, density, avg_shortest, avg_degree_connectivity)
-    
+
+def remove_gail_from_df(gail_id, input_df):
+    return_df = input_df.copy()
+    return  return_df[(return_df['Source'] != gail_id) & 
+                          (return_df['Destination'] != gail_id)]
 def perform_deep_purchase_analysis(columns, replace_dict):
     main_df = pd.DataFrame()
     for data in data_types:
@@ -198,33 +243,32 @@ def perform_deep_purchase_analysis(columns, replace_dict):
         if data == 'purchases':
             gail_id = get_gail_id(curr_data)
             ##TOO many purchases to look at gail, drop all including gail
-            purchase_df_with_gail = curr_data
-            purchase_df = curr_data[(curr_data['Source'] != gail_id) & 
-                          (curr_data['Destination'] != gail_id)]
+            full_purchase_df = curr_data
+            purchase_df = remove_gail_from_df(gail_id, full_purchase_df)
         else:
             main_df = main_df.append(curr_data, ignore_index = True)
+    ##TODO RERUN OVERNIGHT?
+    '''
+    print('full df with gail')
+    full_df_network = pd.DataFrame()
+    full_df_network = full_df_network.append([full_purchase_df, main_df])
+    full_df_network.sort_values(by='TimeStamp', inplace=True)
+    full_df_network = get_names_from_company_index.add_names_to_data_frame(full_df_network)
+    perform_network_analysis(full_df_network)
         
-        print('full df with gail')
-        full_df_network = pd.DataFrame()
-        full_df_network = full_df_network.append([purchase_df_with_gail, main_df])
-        perform_network_analysis(full_df_network)
-        
-        print('full df without gail')
-        full_df_network = pd.DataFrame()
-        full_df_network = full_df_network.append([purchase_df, main_df])
-        perform_network_analysis(full_df_network)
-            
+    print('full df without gail')
+    full_df_no_gail = remove_gail_from_df(gail_id, full_df_network)
+    perform_network_analysis(full_df_no_gail)
+    '''
     (unique_sources, unique_destinations, 
      total_interactions, int_per_source, 
-     int_per_dest, mean_time_between) = analyze_confirmed_suspicious(columns, replace_dict, main_df)
+     int_per_dest, mean_time_between), layers = analyze_confirmed_suspicious(columns, replace_dict, main_df)
     
     print(unique_sources, unique_destinations, 
           total_interactions, int_per_source, 
           int_per_dest, mean_time_between)
-    analyze_suspected_suspicious(main_df, replace_dict)
-    analyze_all_purchases(main_df, replace_dict, purchase_df)
-    #purchase_analysis_df = purchase_analysis(sus_source, sus_destination, purchase_time, main_df)
-    #print(determine_metrics_for_purchase(purchase_analysis_df))
+    analyze_suspected_suspicious(main_df, replace_dict, layers)
+    analyze_all_purchases(main_df, replace_dict, purchase_df, layers)
 
 def _main(columns, data_types, replace_dict,
           use_preprocess, deep_purchase_analysis, 
