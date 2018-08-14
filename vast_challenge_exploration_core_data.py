@@ -86,6 +86,7 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     
     sus_analysis_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers, output_dict, suspicious_conf)
     
+    gather_purchase_metrics.compare_confirmed_suspicious_in_larger_data_set(main_df, sus_df, sus_purchase_row)
     
     filename = 'suspected_suspicious/confirmed_suspicious.csv'
     sus_analysis_df = record_purchase_information(filename, sus_analysis_df, replace_dict)

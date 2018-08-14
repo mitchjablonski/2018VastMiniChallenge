@@ -8,6 +8,10 @@ import math
 import pandas as pd
 import numpy as np
 
+
+def compare_confirmed_suspicious_in_larger_data_set(main_df, suspicious_df, sus_purchase_row):
+    print('test')
+    
 def purchase_analysis(purchase_row, input_df, layers, output_dict, suspicious_indicator):
     ##We will want to get all of their interactions that occured within a one month timeframe
     look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator)
