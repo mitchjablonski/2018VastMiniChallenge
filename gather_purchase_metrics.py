@@ -8,9 +8,9 @@ import math
 import pandas as pd
 import numpy as np
 
-def purchase_analysis(purchase_row, input_df, layers, output_dict):
+def purchase_analysis(purchase_row, input_df, layers, output_dict, suspicious_indicator):
     ##We will want to get all of their interactions that occured within a one month timeframe
-    look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict)
+    look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator)
     source = purchase_row['Source']
     destination = purchase_row['Destination']
     purchase_time = purchase_row['TimeStamp']
@@ -72,7 +72,7 @@ def determine_layers_out(input_df, purchase_row, output_dict):
     print(layers)
     return layers
 
-def describe_network_interactions(temp_df, purchase_row, output_dict):
+def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious_indicator):
     row, columns = temp_df.shape
     new_df = temp_df.set_index('full_date')
     
@@ -130,8 +130,9 @@ def describe_network_interactions(temp_df, purchase_row, output_dict):
         output_dict['num_uniq_dest'].append(unique_dest)
         output_dict['combined_unique'].append(unique_source_dest.size)
         output_dict['total_entires'].append(tot_entries)
+        output_dict['suspicious_indicator'].append(suspicious_indicator)
 
-def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict):
+def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator):
     temp_layers = 0 
     output_df = input_df.copy()
     ##TODO is time limiting good here?
@@ -169,7 +170,8 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
                       (temp_df['Etype'] == 3) ]
     print(temp_df.shape)
     
-    describe_network_interactions(temp_df, purchase_row, output_dict)
+    describe_network_interactions(temp_df, purchase_row, output_dict,
+                                  suspicious_indicator)
     
 def time_filter_df(input_df, time_forward, time_backward, purchase_time):
     filtered_df = input_df.copy()

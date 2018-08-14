@@ -82,7 +82,8 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     sus_df.sort_values('full_date', inplace=True)
     layers = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, output_dict)
     
-    sus_analysis_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers, output_dict)
+    suspicious_conf = 1
+    sus_analysis_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers, output_dict, suspicious_conf)
     
     
     filename = 'suspected_suspicious/confirmed_suspicious.csv'
@@ -91,7 +92,7 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
         perform_network_analysis(sus_analysis_df)
 
     print('full_df')
-    sus_analysis_full_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, main_df, layers, output_dict)
+    sus_analysis_full_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, main_df, layers, output_dict, suspicious_conf)
     filename = 'suspected_suspicious/confirmed_suspicious_full_set.csv'
     sus_analysis_full_df = record_purchase_information(filename, sus_analysis_full_df, replace_dict)
     
@@ -114,12 +115,13 @@ def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_gr
     other_suspicious = pd.read_csv('Other_suspicious_purchases.csv')
     other_suspicious.rename(columns={'Dest':'Destination','Time':'TimeStamp'}, inplace=True)
     other_suspicious = dt_converter.convert_time(other_suspicious)
+    suspicious_conf = 1
     for index, rows in other_suspicious.iterrows():
         analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, output_dict)
         filename = ('suspected_suspicious/suspected_suspicous_{}_{}_{}.csv'.format(rows['Source'], 
                                                                                    rows['Destination'],
                                                                                    rows['TimeStamp']))
-        analysis_df = record_purchase_information(filename, analysis_df, replace_dict)
+        analysis_df = record_purchase_information(filename, analysis_df, replace_dict, suspicious_conf)
         if build_network_graph:
             perform_network_analysis(analysis_df)
         #print(determine_metrics_for_purchase(analysis_df))
@@ -127,13 +129,14 @@ def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_gr
 def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_network_graph, output_dict):
     purchase_df.reset_index(inplace=True)
     print('In all purchase region, not logging all runs on')
+    suspicious_conf = -1
     for index, rows in purchase_df.iterrows():
         #analysis_df = purchase_analysis(rows, main_df)
         if (index % 1000) == 1:
             print('index {}'.format(index))
         #if index >7000 and index < 7012:
         if True:
-            analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, output_dict)
+            analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, output_dict, suspicious_conf)
             #Not logging
             '''
             filename = ('regular_purchases/regular_purchases_{}_{}_{}.csv'.format(rows['Source'], 
