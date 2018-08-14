@@ -9,9 +9,7 @@ from __future__ import division
 from __future__ import print_function
 
 import pandas as pd
-import numpy as np
 import networkx as nx
-import math
 
 import date_time_conversion as dt_converter
 import high_level_investigation as high_level_investigation
@@ -101,6 +99,7 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     
     print('only_sus_df')
     #return determine_metrics_for_purchase(sus_analysis_df), layers
+    return layers
 
 def record_purchase_information(filename, data_frame, replace_dict):
     data_frame = data_frame.copy()
@@ -128,9 +127,9 @@ def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_netw
     print('In all purchase region')
     for index, rows in purchase_df.iterrows():
         #analysis_df = purchase_analysis(rows, main_df)
-        if (index % 100) == 1:
+        if (index % 1000) == 1:
             print('index {}'.format(index))
-        if index >6000 and index < 6012:
+        if index >7000 and index < 7012:
             analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers)
             filename = ('regular_purchases/regular_purchases_{}_{}_{}.csv'.format(rows['Source'], 
                                                                                   rows['Destination'],
@@ -178,8 +177,10 @@ def perform_deep_purchase_analysis(columns, replace_dict, build_network_graph):
             purchase_df = remove_gail_from_df(gail_id, full_purchase_df)
         else:
             main_df = main_df.append(curr_data, ignore_index = True)
-    layers=1
-    analyze_confirmed_suspicious(columns, replace_dict, 
+    
+    main_df['full_date'] = pd.to_datetime(main_df['full_date'])
+    main_df = main_df.sort_values(by='full_date')
+    layers = analyze_confirmed_suspicious(columns, replace_dict, 
                                  main_df, build_network_graph)
     analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_graph)
     analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_network_graph)

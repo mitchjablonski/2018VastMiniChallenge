@@ -1,0 +1,356 @@
+Suspicious:
+
+(49, 10)
+(30, 10)
+Mean time between interactions 6 days 04:08:16.551724
+Max time between interactions 82 days 12:26:40
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 31 days 19:12:00
+Max time rolling_diffs 110 days 00:00:00
+Min time rolling_diffs 3 days 00:00:00
+Mean number of entries in window 4.0
+Max number of entries in window 10.0
+Min number of entries in window 1.0
+Primary source interactions 20
+Primary dest interactions 0
+Average dest count 10.0
+Average source count 6.0
+Number unique Sources 5
+Number Unique Destination 3
+Total Number of entries 30
+only_sus_df
+(2038, 10)
+(43, 10)
+Mean time between interactions 12 days 18:41:52.428571
+Max time between interactions 48 days 07:11:21
+Min time between interactions 0 days 00:00:12
+Mean time rolling_diffs 59 days 08:42:47.473684
+Max time rolling_diffs 123 days 10:13:35
+Min time rolling_diffs 16 days 00:00:00
+Mean number of entries in window 1.744186046511628
+Max number of entries in window 4.0
+Min number of entries in window 1.0
+Primary source interactions 10
+Primary dest interactions 0
+Average dest count 5.375
+Average source count 5.375
+Number unique Sources 8
+Number Unique Destination 8
+Total Number of entries 43
+(66, 10)
+(16, 10)
+Mean time between interactions 9 days 09:36:00
+Max time between interactions 42 days 00:00:00
+Min time between interactions 1 days 00:00:00
+Mean time rolling_diffs 59 days 08:43:38.181818
+Max time rolling_diffs 100 days 00:00:00
+Min time rolling_diffs 22 days 00:00:00
+Mean number of entries in window 2.0625
+Max number of entries in window 5.0
+Min number of entries in window 1.0
+Primary source interactions 16
+Primary dest interactions 0
+Average dest count 5.333333333333333
+Average source count 8.0
+Number unique Sources 2
+Number Unique Destination 3
+Total Number of entries 16
+(1560, 10)
+(61, 10)
+Mean time between interactions 6 days 07:03:27.716666
+Max time between interactions 55 days 07:01:58
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 31 days 18:13:47.875000
+Max time rolling_diffs 162 days 10:58:52
+Min time rolling_diffs 2 days 00:00:00
+Mean number of entries in window 3.7540983606557377
+Max number of entries in window 10.0
+Min number of entries in window 1.0
+Primary source interactions 13
+Primary dest interactions 0
+Average dest count 6.1
+Average source count 7.625
+Number unique Sources 8
+Number Unique Destination 10
+Total Number of entries 61
+(139, 10)
+(14, 10)
+Mean time between interactions 23 days 07:16:35.384615
+Max time between interactions 122 days 09:46:01
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 90 days 14:17:18.777777
+Max time rolling_diffs 189 days 22:35:20
+Min time rolling_diffs 8 days 00:00:00
+Mean number of entries in window 2.2857142857142856
+Max number of entries in window 5.0
+Min number of entries in window 1.0
+Primary source interactions 13
+Primary dest interactions 0
+Average dest count 2.8
+Average source count 3.5
+Number unique Sources 4
+Number Unique Destination 5
+Total Number of entries 14
+(6709, 10)
+(247, 10)
+Mean time between interactions 2 days 05:12:18.752032
+Max time between interactions 12 days 11:03:13
+Min time between interactions 0 days 00:00:02
+Mean time rolling_diffs 11 days 02:59:28.322314
+Max time rolling_diffs 26 days 09:51:20
+Min time rolling_diffs 2 days 05:40:38
+Mean number of entries in window 4.368421052631579
+Max number of entries in window 9.0
+Min number of entries in window 1.0
+Primary source interactions 21
+Primary dest interactions 0
+Average dest count 9.88
+Average source count 9.88
+Number unique Sources 25
+Number Unique Destination 25
+Total Number of entries 247
+(3369, 10)
+(93, 10)
+Mean time between interactions 4 days 11:38:25.500000
+Max time between interactions 20 days 23:39:13
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 21 days 13:05:58.761363
+Max time rolling_diffs 45 days 11:25:23
+Min time rolling_diffs 0 days 12:57:33
+Mean number of entries in window 3.6559139784946235
+Max number of entries in window 15.0
+Min number of entries in window 1.0
+Primary source interactions 16
+Primary dest interactions 0
+Average dest count 5.470588235294118
+Average source count 5.470588235294118
+Number unique Sources 17
+Number Unique Destination 17
+Total Number of entries 93
+(67020, 10)
+(8300, 10)
+Mean time between interactions 0 days 01:05:59.012772
+Max time between interactions 0 days 13:43:10
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 0 days 05:29:52.925376
+Max time rolling_diffs 0 days 20:22:01
+Min time rolling_diffs 0 days 00:24:41
+Mean number of entries in window 175.02939759036144
+Max number of entries in window 242.0
+Min number of entries in window 1.0
+Primary source interactions 59
+Primary dest interactions 0
+Average dest count 13.996627318718382
+Average source count 13.973063973063972
+Number unique Sources 594
+Number Unique Destination 593
+Total Number of entries 8300
+
+
+
+
+
+
+Nominal:
+
+
+(24957, 10)
+(4967, 10)
+Mean time between interactions 0 days 02:30:29.012484
+Max time between interactions 1 days 15:49:36
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 0 days 12:32:00.352881
+Max time rolling_diffs 3 days 05:33:10
+Min time rolling_diffs 0 days 00:02:19
+Mean number of entries in window 151.86108314878197
+Max number of entries in window 761.0
+Min number of entries in window 1.0
+Primary source interactions 26
+Primary dest interactions 0
+Average dest count 14.070821529745043
+Average source count 14.070821529745043
+Number unique Sources 353
+Number Unique Destination 353
+Total Number of entries 4967
+(1169, 10)
+(16, 10)
+Mean time between interactions 34 days 01:41:51.133333
+Max time between interactions 109 days 02:28:10
+Min time between interactions 0 days 00:00:23
+Mean time rolling_diffs 166 days 04:49:07.454545
+Max time rolling_diffs 279 days 07:52:44
+Min time rolling_diffs 49 days 06:42:30
+Mean number of entries in window 1.5
+Max number of entries in window 3.0
+Min number of entries in window 1.0
+Primary source interactions 2
+Primary dest interactions 0
+Average dest count 4.0
+Average source count 4.0
+Number unique Sources 4
+Number Unique Destination 4
+Total Number of entries 16
+(501, 10)
+(4, 10)
+Mean time between interactions 0 days 07:08:11.666666
+Max time between interactions 0 days 21:23:32
+Min time between interactions 0 days 00:00:24
+Mean time rolling_diffs NaT
+Max time rolling_diffs NaT
+Min time rolling_diffs nan
+Mean number of entries in window 2.5
+Max number of entries in window 4.0
+Min number of entries in window 1.0
+Primary source interactions 3
+Primary dest interactions 0
+Average dest count 1.3333333333333333
+Average source count 1.0
+Number unique Sources 4
+Number Unique Destination 3
+Total Number of entries 4
+(83220, 10)
+(27995, 10)
+Mean time between interactions 0 days 00:26:43.934593
+Max time between interactions 0 days 07:54:15
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 0 days 02:13:38.988531
+Max time rolling_diffs 0 days 18:30:05
+Min time rolling_diffs 0 days 00:00:28
+Mean number of entries in window 835.145668869441
+Max number of entries in window 3773.0
+Min number of entries in window 1.0
+Primary source interactions 106
+Primary dest interactions 0
+Average dest count 16.276162790697676
+Average source count 16.200810185185187
+Number unique Sources 1728
+Number Unique Destination 1720
+Total Number of entries 27995
+(318, 10)
+(3, 10)
+Mean time between interactions 0 days 00:00:02
+Max time between interactions 0 days 00:00:03
+Min time between interactions 0 days 00:00:01
+Mean time rolling_diffs NaT
+Max time rolling_diffs NaT
+Min time rolling_diffs nan
+Mean number of entries in window 2.0
+Max number of entries in window 3.0
+Min number of entries in window 1.0
+Primary source interactions 2
+Primary dest interactions 0
+Average dest count 1.0
+Average source count 1.0
+Number unique Sources 3
+Number Unique Destination 3
+Total Number of entries 3
+(674, 10)
+(6, 10)
+Mean time between interactions 0 days 15:11:41.400000
+Max time between interactions 2 days 04:28:41
+Min time between interactions 0 days 00:00:10
+Mean time rolling_diffs 3 days 03:58:27
+Max time rolling_diffs 3 days 03:58:27
+Min time rolling_diffs 3 days 03:58:27
+Mean number of entries in window 3.5
+Max number of entries in window 6.0
+Min number of entries in window 1.0
+Primary source interactions 5
+Primary dest interactions 0
+Average dest count 1.2
+Average source count 1.5
+Number unique Sources 4
+Number Unique Destination 5
+Total Number of entries 6
+(440745, 10)
+(264128, 10)
+Mean time between interactions 0 days 00:02:50.045360
+Max time between interactions 0 days 01:14:15
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 0 days 00:14:10.219905
+Max time rolling_diffs 0 days 01:56:36
+Min time rolling_diffs 0 days 00:00:06
+Mean number of entries in window 6003.3996887872545
+Max number of entries in window 19779.0
+Min number of entries in window 1.0
+Primary source interactions 4503
+Primary dest interactions 0
+Average dest count 19.34295129989015
+Average source count 19.38127384796008
+Number unique Sources 13628
+Number Unique Destination 13655
+Total Number of entries 264128
+(175, 10)
+(3, 10)
+Mean time between interactions 0 days 00:00:32
+Max time between interactions 0 days 00:01:00
+Min time between interactions 0 days 00:00:04
+Mean time rolling_diffs NaT
+Max time rolling_diffs NaT
+Min time rolling_diffs nan
+Mean number of entries in window 2.0
+Max number of entries in window 3.0
+Min number of entries in window 1.0
+Primary source interactions 2
+Primary dest interactions 0
+Average dest count 1.0
+Average source count 1.0
+Number unique Sources 3
+Number Unique Destination 3
+Total Number of entries 3
+(5489, 10)
+(469, 10)
+Mean time between interactions 1 days 02:28:02.211538
+Max time between interactions 15 days 09:08:09
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 5 days 12:07:21.137931
+Max time rolling_diffs 32 days 04:49:51
+Min time rolling_diffs 0 days 04:42:27
+Mean number of entries in window 12.505330490405118
+Max number of entries in window 51.0
+Min number of entries in window 1.0
+Primary source interactions 14
+Primary dest interactions 0
+Average dest count 9.97872340425532
+Average source count 10.195652173913043
+Number unique Sources 46
+Number Unique Destination 47
+Total Number of entries 469
+(850912, 10)
+(606489, 10)
+Mean time between interactions 0 days 00:01:14.066777
+Max time between interactions 0 days 00:34:02
+Min time between interactions 0 days 00:00:00
+Mean time rolling_diffs 0 days 00:06:10.330166
+Max time rolling_diffs 0 days 01:14:02
+Min time rolling_diffs 0 days 00:00:03
+Mean number of entries in window 12499.888329384376
+Max number of entries in window 38066.0
+Min number of entries in window 1.0
+Primary source interactions 6372
+Primary dest interactions 0
+Average dest count 21.49374490555339
+Average source count 21.48384697130712
+Number unique Sources 28230
+Number Unique Destination 28217
+Total Number of entries 606489
+(1625, 10)
+(53, 10)
+Mean time between interactions 9 days 07:13:05.711538
+Max time between interactions 57 days 01:46:37
+Min time between interactions 0 days 00:00:02
+Mean time rolling_diffs 46 days 07:53:14.104166
+Max time rolling_diffs 116 days 08:01:24
+Min time rolling_diffs 0 days 04:28:34
+Mean number of entries in window 2.8679245283018866
+Max number of entries in window 10.0
+Min number of entries in window 1.0
+Primary source interactions 4
+Primary dest interactions 0
+Average dest count 5.3
+Average source count 5.3
+Number unique Sources 10
+Number Unique Destination 10
+Total Number of entries 53
+
+
