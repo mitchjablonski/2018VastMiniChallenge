@@ -85,11 +85,12 @@ def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious
         temp_df['full_date'] = pd.to_datetime(temp_df['full_date'])
         temp_df.sort_values(by='full_date', inplace=True)
         time_between_interactions  = temp_df['full_date'].diff()
-    
+        rolling_diff  = temp_df['full_date'].diff(periods=5)
+
+        '''
         print('Mean time between interactions {}'.format(time_between_interactions.mean()))
         print('Max time between interactions {}'.format(time_between_interactions.max()))
         print('Min time between interactions {}'.format(time_between_interactions.min()))
-        rolling_diff  = temp_df['full_date'].diff(periods=5)
         print('Mean time rolling_diffs {}'.format(rolling_diff.mean()))
         print('Max time rolling_diffs {}'.format(rolling_diff.max()))
         print('Min time rolling_diffs {}'.format(rolling_diff.min()))
@@ -98,6 +99,7 @@ def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious
         print('Mean number of entries in window {}'.format(rolling_window_counts.mean()))
         print('Max number of entries in window {}'.format(rolling_window_counts.max()))
         print('Min number of entries in window {}'.format(rolling_window_counts.min()))
+        '''
     
         unique_source_dest = np.concatenate((temp_df['Source'].unique(), temp_df['Destination'].unique()))
         unique_source_dest = np.unique(unique_source_dest)
@@ -131,6 +133,16 @@ def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious
         output_dict['combined_unique'].append(unique_source_dest.size)
         output_dict['total_entires'].append(tot_entries)
         output_dict['suspicious_indicator'].append(suspicious_indicator)
+        output_dict['mean_time_btwn'].append(time_between_interactions.mean())
+        output_dict['max_time_btwn'].append(time_between_interactions.max())
+        output_dict['min_time_btwn'].append(time_between_interactions.min())
+        output_dict['mean_rolling_diff'].append(rolling_diff.mean())
+        output_dict['max_rolling_diff'].append(rolling_diff.max())
+        output_dict['min_rolling_diff'].append(rolling_diff.min())
+        output_dict['mean_rolling_window'].append(rolling_window_counts.mean())
+        output_dict['max_rolling_window'].append(rolling_window_counts.max())
+        output_dict['min_rolling_window'].append(rolling_window_counts.min())
+    
 
 def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator):
     temp_layers = 0 
