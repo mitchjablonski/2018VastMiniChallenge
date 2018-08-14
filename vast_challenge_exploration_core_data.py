@@ -80,9 +80,10 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     sus_df = sus_df.append([email_data, call_data, meeting_data])
     sus_df = dt_converter.convert_time(sus_df)
     sus_df.sort_values('full_date', inplace=True)
-    layers = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, output_dict)
     
     suspicious_conf = 1
+    layers = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, output_dict, suspicious_conf)
+    
     sus_analysis_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers, output_dict, suspicious_conf)
     
     
@@ -117,11 +118,11 @@ def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_gr
     other_suspicious = dt_converter.convert_time(other_suspicious)
     suspicious_conf = 1
     for index, rows in other_suspicious.iterrows():
-        analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, output_dict)
+        analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, output_dict, suspicious_conf)
         filename = ('suspected_suspicious/suspected_suspicous_{}_{}_{}.csv'.format(rows['Source'], 
                                                                                    rows['Destination'],
                                                                                    rows['TimeStamp']))
-        analysis_df = record_purchase_information(filename, analysis_df, replace_dict, suspicious_conf)
+        analysis_df = record_purchase_information(filename, analysis_df, replace_dict)
         if build_network_graph:
             perform_network_analysis(analysis_df)
         #print(determine_metrics_for_purchase(analysis_df))

@@ -47,7 +47,7 @@ def determine_metrics_for_purchase(input_df):
             total_interactions, int_per_source, 
             int_per_dest, mean_time_between)
     
-def determine_layers_out(input_df, purchase_row, output_dict):
+def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicator):
     output_df = input_df.copy()    
     source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
     dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
@@ -65,7 +65,7 @@ def determine_layers_out(input_df, purchase_row, output_dict):
         layers += 1
         temp_cols, _ = temp_df.shape
     
-    describe_network_interactions(temp_df, purchase_row, output_dict)
+    describe_network_interactions(temp_df, purchase_row, output_dict, suspicious_indicator)
     
     print('Forcing layers to be 1')
     layers=1
