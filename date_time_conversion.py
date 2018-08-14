@@ -9,10 +9,12 @@ import pandas as pd
 from datetime import datetime
 
 def convert_time(input_df):
+    return_df = input_df.copy()
     start_time = 1431316800
-    input_df['TimeStamp'] += start_time
-    input_df['full_date'] = pd.to_datetime(input_df['TimeStamp'], unit='s')
-    input_df['month_day_yr'] = input_df['full_date'].dt.strftime('%m/%d/%Y')
-    input_df['month_yr'] = input_df['full_date'].dt.strftime('%m/%Y')
-    input_df['month'] = input_df['full_date'].dt.strftime('%m')
-    input_df['yr'] = input_df['full_date'].dt.strftime('%Y')
+    return_df['TimeStamp'] += start_time
+    return_df['full_date'] = pd.to_datetime(return_df['TimeStamp'], unit='s')
+    return_df['month_day_yr'] = return_df['full_date'].dt.strftime('%m/%d/%Y')
+    return_df['month_yr'] = return_df['full_date'].dt.strftime('%m/%Y')
+    return_df['month'] = return_df['full_date'].dt.strftime('%m')
+    return_df['yr'] = return_df['full_date'].dt.strftime('%Y')
+    return return_df
