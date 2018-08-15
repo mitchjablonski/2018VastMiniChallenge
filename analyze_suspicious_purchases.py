@@ -9,7 +9,6 @@ import networkx as nx
 
 import gather_purchase_metrics as gather_purchase_metrics
 import date_time_conversion as dt_converter
-import add_names_to_df as get_names_from_company_index
 
 
 
@@ -27,20 +26,22 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     sus_df.sort_values('full_date', inplace=True)
     
     suspicious_conf = 1
-    layers = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, output_dict, suspicious_conf)
+    layers = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, 
+                                                          output_dict, suspicious_conf)
+
+    filename = 'suspected_suspicious/confirmed_suspicious.csv'    
+    sus_analysis_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers,
+                                                                output_dict, suspicious_conf, 
+                                                                filename, replace_dict)
     
-    sus_analysis_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers, output_dict, suspicious_conf)
-    
-    
-    filename = 'suspected_suspicious/confirmed_suspicious.csv'
-    sus_analysis_df = record_purchase_information(filename, sus_analysis_df, replace_dict)
     if build_network_graph:
         perform_network_analysis(sus_analysis_df)
 
     print('full_df')
-    sus_analysis_full_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, main_df, layers, output_dict, suspicious_conf)
     filename = 'suspected_suspicious/confirmed_suspicious_full_set.csv'
-    sus_analysis_full_df = record_purchase_information(filename, sus_analysis_full_df, replace_dict)
+    sus_analysis_full_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, main_df, layers, 
+                                                                     output_dict, suspicious_conf, 
+                                                                     filename, replace_dict)
     
     if build_network_graph:
         perform_network_analysis(sus_analysis_full_df)
@@ -57,11 +58,12 @@ def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_gr
     other_suspicious = dt_converter.convert_time(other_suspicious)
     suspicious_conf = 1
     for index, rows in other_suspicious.iterrows():
-        analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, output_dict, suspicious_conf)
         filename = ('suspected_suspicious/suspected_suspicous_{}_{}_{}.csv'.format(rows['Source'], 
                                                                                    rows['Destination'],
                                                                                    rows['TimeStamp']))
-        analysis_df = record_purchase_information(filename, analysis_df, replace_dict)
+        analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
+                                                                output_dict, suspicious_conf, 
+                                                                filename, replace_dict)
         if build_network_graph:
             perform_network_analysis(analysis_df)
         #print(gather_purchase_metrics.determine_metrics_for_purchase(analysis_df))
@@ -73,16 +75,14 @@ def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_netw
     for index, rows in purchase_df.iterrows():
         if (index % 1000) == 1:
             print('index {}'.format(index))
-        analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, output_dict, suspicious_conf)
+        filename = ('all_purchasers/all_purchasers{}_{}_{}.csv'.format(rows['Source'], 
+                                                                       rows['Destination'],
+                                                                       rows['TimeStamp']))
+        analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
+                                                                output_dict, suspicious_conf, 
+                                                                filename, replace_dict)
         if build_network_graph:
             perform_network_analysis(analysis_df)
-            
-def record_purchase_information(filename, data_frame, replace_dict):
-    data_frame = data_frame.copy()
-    data_frame['Etype'].replace(replace_dict, inplace=True)
-    data_frame = get_names_from_company_index.add_names_to_data_frame(data_frame)
-    data_frame.to_csv(filename)
-    return data_frame
 
 def perform_network_analysis(input_df):
     FG = nx.from_pandas_edgelist(input_df, source='Source_Names', target='Destination_Names', edge_attr=True,)
