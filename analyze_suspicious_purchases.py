@@ -30,11 +30,13 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     layers, unique_mtg_attendees = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, 
                                                           output_dict, suspicious_conf)
 
-    filename = 'suspected_suspicious/confirmed_suspicious.csv'    
+    filename = 'suspected_suspicious/confirmed_suspicious.csv'  
+    analysis_type = 'confirmed_suspicious'
     sus_analysis_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers,
                                                                 output_dict, suspicious_conf, 
                                                                 filename, replace_dict,
-                                                                unique_mtg_attendees)
+                                                                unique_mtg_attendees,
+                                                                analysis_type)
     
     if build_network_graph:
         perform_network_analysis(sus_analysis_df)
@@ -44,7 +46,8 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     sus_analysis_full_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, main_df, layers, 
                                                                      output_dict, suspicious_conf, 
                                                                      filename, replace_dict,
-                                                                     unique_mtg_attendees)
+                                                                     unique_mtg_attendees,
+                                                                     analysis_type)
     
     if build_network_graph:
         perform_network_analysis(sus_analysis_full_df)
@@ -61,6 +64,7 @@ def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_gr
     other_suspicious = dt_converter.convert_time(other_suspicious)
     other_suspicious = get_company_names.add_names_to_data_frame(other_suspicious)
     suspicious_conf = 1
+    analysis_type = 'suspected_suspicious'
     for index, rows in other_suspicious.iterrows():
         filename = ('suspected_suspicious/suspected_suspicous_{}_{}_{}.csv'.format(rows['Source'], 
                                                                                    rows['Destination'],
@@ -68,28 +72,33 @@ def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_gr
         analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
                                                                 output_dict, suspicious_conf, 
                                                                 filename, replace_dict,
-                                                                unique_mtg_attendees)
+                                                                unique_mtg_attendees,
+                                                                analysis_type)
         if build_network_graph:
             perform_network_analysis(analysis_df)
         #print(gather_purchase_metrics.determine_metrics_for_purchase(analysis_df))
 
 def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_network_graph, output_dict, unique_mtg_attendees):
     purchase_df.reset_index(inplace=True)
+    purchase_df = purchase_df.loc[6500:6600]
     purchase_df = get_company_names.add_names_to_data_frame(purchase_df)
     print('In all purchase region, not logging all runs on')
     suspicious_conf = -1
+    analysis_type = 'normal_purchase'
     for index, rows in purchase_df.iterrows():
         if (index % 1000) == 1:
             print('index {}'.format(index))
-        filename = ('all_purchasers/all_purchasers{}_{}_{}.csv'.format(rows['Source'], 
-                                                                       rows['Destination'],
-                                                                       rows['TimeStamp']))
-        analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
-                                                                output_dict, suspicious_conf, 
-                                                                filename, replace_dict,
-                                                                unique_mtg_attendees)
-        if build_network_graph:
-            perform_network_analysis(analysis_df)
+        if index > 6500 and index < 6600:
+            filename = ('all_purchasers/all_purchasers{}_{}_{}.csv'.format(rows['Source'], 
+                                                                           rows['Destination'],
+                                                                           rows['TimeStamp']))
+            analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
+                                                                    output_dict, suspicious_conf, 
+                                                                    filename, replace_dict,
+                                                                    unique_mtg_attendees,
+                                                                    analysis_type)
+            if build_network_graph:
+                perform_network_analysis(analysis_df)
 
 def perform_network_analysis(input_df):
     FG = nx.from_pandas_edgelist(input_df, source='Source_Names', target='Destination_Names', edge_attr=True,)

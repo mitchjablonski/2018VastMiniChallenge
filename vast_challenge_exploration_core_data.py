@@ -56,9 +56,9 @@ def compare_purchases_for_gail(use_preprocess, columns):
     data_types =['gail', 'no_gail']
     for data in data_types:
         if data is 'gail':
-            temp_data = purchase_data[gail_id == purchase_data['Destination']]
+            temp_data = purchase_data.loc[gail_id == purchase_data['Destination']]
         else:
-            temp_data = purchase_data[gail_id != purchase_data['Destination']]
+            temp_data = purchase_data.loc[gail_id != purchase_data['Destination']]
         purchases_described = purchases_described.append(high_level_investigation.investigate_data(temp_data, data), 
                                                      ignore_index=True, sort=True)
     
@@ -69,7 +69,7 @@ def compare_purchases_for_gail(use_preprocess, columns):
 
 def remove_gail_from_df(gail_id, input_df):
     return_df = input_df.copy()
-    return  return_df[(return_df['Source'] != gail_id) & 
+    return  return_df.loc[(return_df['Source'] != gail_id) & 
                           (return_df['Destination'] != gail_id)]
     
 def perform_deep_purchase_analysis(columns, replace_dict, build_network_graph, analyze_full_dataset):
@@ -138,10 +138,10 @@ if __name__ == '__main__':
     replace_dict = {0:'calls',1:'emails',2:'purchases',3:'meetings'}
     use_preprocess = True
     deep_purchase_analysis = True
-    data_describe_processing = False
+    data_describe_processing = True
     compare_purchase_gail = True
     build_network_graph = False
-    analyze_full_dataset = False
+    analyze_full_dataset = True
     described_data, purchases_described = _main(columns, data_types, replace_dict,
                                                 use_preprocess, deep_purchase_analysis, 
                                                 data_describe_processing, compare_purchase_gail,
