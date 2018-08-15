@@ -141,7 +141,7 @@ if __name__ == '__main__':
     data_describe_processing = False
     compare_purchase_gail = False
     build_network_graph = False
-    analyze_full_dataset = True
+    analyze_full_dataset = False
     described_data, purchases_described = _main(columns, data_types, replace_dict,
                                                 use_preprocess, deep_purchase_analysis, 
                                                 data_describe_processing, compare_purchase_gail,
