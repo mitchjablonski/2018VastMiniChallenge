@@ -9,8 +9,7 @@ import pandas as pd
 import numpy as np
 import add_names_to_df as get_names_from_company_index
 
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 '''
 0 is for calls
 1 is for emails
@@ -18,17 +17,6 @@ import add_names_to_df as get_names_from_company_index
 3 is for meetings
 '''
 def time_filter_one_layer(purchase_row, input_df, filename, replace_dict):
-=======
-
-def compare_confirmed_suspicious_in_larger_data_set(main_df, suspicious_df, sus_purchase_row):
-    print('test')
-    
-=======
->>>>>>> parent of f15579f... Begins Building a comparsion for suspicious to main dataset
-def purchase_analysis(purchase_row, input_df, layers, output_dict, suspicious_indicator):
-    ##We will want to get all of their interactions that occured within a one month timeframe
-    look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator)
->>>>>>> f15579f7e41450eddeb4daf09f1828e973c7ef5d
     source = purchase_row['Source']
     destination = purchase_row['Destination']
     purchase_time = purchase_row['TimeStamp']
@@ -50,6 +38,14 @@ def purchase_analysis(purchase_row, input_df, layers, output_dict, suspicious_in
     filtered_df = filtered_df.append(purchase_row)
     filtered_df = get_names_from_company_index.add_names_to_data_frame(filtered_df)
     record_purchase_information(filename, filtered_df, replace_dict)
+    return filtered_df
+
+def time_filter_df(input_df, time_forward, time_backward, purchase_time):
+    filtered_df = input_df.copy()
+    start_time = purchase_time - time_backward
+    stop_time  = purchase_time + time_forward
+    filtered_df = filtered_df.loc[(filtered_df['TimeStamp'] > start_time) &
+                      (filtered_df['TimeStamp'] < stop_time)]
     return filtered_df
 
 def purchase_analysis(purchase_row, input_df, layers, 
@@ -184,13 +180,6 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     
     return temp_df
     
-def time_filter_df(input_df, time_forward, time_backward, purchase_time):
-    filtered_df = input_df.copy()
-    start_time = purchase_time - time_backward
-    stop_time  = purchase_time + time_forward
-    filtered_df = filtered_df.loc[(filtered_df['TimeStamp'] > start_time) &
-                      (filtered_df['TimeStamp'] < stop_time)]
-    return filtered_df
 
 def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious_indicator):
     row, columns = temp_df.shape
