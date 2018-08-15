@@ -15,14 +15,7 @@ import add_names_to_df as get_names_from_company_index
 2 is for purchases
 3 is for meetings
 '''
-
-def purchase_analysis(purchase_row, input_df, layers, 
-                      output_dict, suspicious_indicator,
-                      filename, replace_dict, unique_mtg_attendees):
-    ##We will want to get all of their interactions that occured within a one month timeframe
-    look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, 
-                                         output_dict, suspicious_indicator, 
-                                         unique_mtg_attendees)
+def time_filter_one_layer(purchase_row, input_df, filename, replace_dict):
     source = purchase_row['Source']
     destination = purchase_row['Destination']
     purchase_time = purchase_row['TimeStamp']
@@ -38,16 +31,31 @@ def purchase_analysis(purchase_row, input_df, layers,
     #to have little contact with the soruce
     source_dest = (filtered_df['Source'] == source) | (filtered_df['Destination'] == destination)
     dest_source = (filtered_df['Source'] == destination) | (filtered_df['Destination'] == source)
-    filtered_df = filtered_df[source_dest | dest_source]
+    filtered_df = filtered_df.loc[source_dest | dest_source]
     
     ##TODO should this go out another layer?  is there more info there?
     filtered_df = filtered_df.append(purchase_row)
+    filtered_df = get_names_from_company_index.add_names_to_data_frame(filtered_df)
     record_purchase_information(filename, filtered_df, replace_dict)
+    return filtered_df
+
+def purchase_analysis(purchase_row, input_df, layers, 
+                      output_dict, suspicious_indicator,
+                      filename, replace_dict, unique_mtg_attendees,
+                      analysis_type):
+    ##We will want to get all of their interactions that occured within a one month timeframe
+    network_df = look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, 
+                                         output_dict, suspicious_indicator, 
+                                         unique_mtg_attendees,
+                                         analysis_type)
+
+    record_purchase_information(filename, network_df, replace_dict)
+    
+    return network_df
 
 def record_purchase_information(filename, data_frame, replace_dict):
     data_frame = data_frame.copy()
     data_frame['Etype'].replace(replace_dict, inplace=True)
-    data_frame = get_names_from_company_index.add_names_to_data_frame(data_frame)
     data_frame.to_csv(filename)
     return data_frame
 
@@ -69,7 +77,7 @@ def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicat
     output_df = input_df.copy()    
     source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
     dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
-    temp_df = output_df[source_dest | dest_source]
+    temp_df = output_df.loc[source_dest | dest_source]
     #temp_df = output_df[source_dest]
     print('determine_layers_out')
     layers = 0
@@ -78,7 +86,7 @@ def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicat
     while temp_cols < full_cols:
         source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
         dest_source = (output_df['Source'].isin(temp_df['Destination'])) | (output_df['Destination'].isin(temp_df['Source']))
-        temp_df = output_df[source_dest | dest_source]
+        temp_df = output_df.loc[source_dest | dest_source]
         #temp_df = output_df[source_dest]
         layers += 1
         temp_cols, _ = temp_df.shape
@@ -91,27 +99,21 @@ def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicat
     layers = 1
     return layers, unique_mtg_attendees
 
-def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator, unique_mtg_attendees):
+def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, 
+                                         suspicious_indicator, unique_mtg_attendees,
+                                         analysis_type):
     temp_layers = 0 
     output_df = input_df.copy()
     
     source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
     dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
     
-    temp_df = output_df[source_dest | dest_source]
+    temp_df = output_df.loc[source_dest | dest_source]
     
-    first_meeting_count = temp_df[temp_df['Etype'] == 3]['Etype'].count()
-    print('Meetings post first filter {}'.format(first_meeting_count))
-    output_dict['first_meeting_count'].append(first_meeting_count)
-    
-    temp_df[temp_df['Etype'] == 3].to_csv('purchase_communication_results/first_pass_meeting_info_{}_{}_{}'
-                                    .format(purchase_row['TimeStamp'], 
-                                            purchase_row['Source'], 
-                                            purchase_row['Destination']))
     while temp_layers < layers:
         source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
         dest_source = (output_df['Source'].isin(temp_df['Destination'])) | (output_df['Destination'].isin(temp_df['Source']))
-        temp_df = output_df[source_dest | dest_source]
+        temp_df = output_df.loc[source_dest | dest_source]
         #temp_df = output_df[source_dest]
         temp_layers += 1
         
@@ -123,46 +125,57 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     common_users = all_comms[all_comms > 1].index.values
     ##In common users for source and dest, or a purchase or meeting
     
-    temp_df = temp_df[((temp_df['Source_Names'].isin(common_users)) & 
+    temp_df = temp_df.loc[((temp_df['Source_Names'].isin(common_users)) & 
                       (temp_df['Destination_Names'].isin(common_users))) |
                       (temp_df['Etype'] == 2) | 
                       (temp_df['Etype'] == 3) ]
     
-    meeting_df = temp_df[temp_df['Etype'] == 3]
+    meeting_df = temp_df.loc[temp_df['Etype'] == 3]
     found_unique_meeting_repeat = np.any(meeting_df['Source'].isin(unique_mtg_attendees) | 
                                             meeting_df['Destination'].isin(unique_mtg_attendees)) 
     if found_unique_meeting_repeat:
-        print('Repeat Unique Meeting Attendee Found for Source {} Dest {}'.format(purchase_row['Source_Names'], 
+        print('{} Repeat Unique Meeting Attendee Found for Source {} Dest {}'.format(analysis_type,
+                                                                                  purchase_row['Source_Names'], 
                                                                                   purchase_row['Destination_Names']))
+        
         temp_df.to_csv(
-            'purchase_communication_results/group_structure_for_{}_{}_{}_where_repeat_meeting_attendee_found'
-            .format(purchase_row['TimeStamp'], purchase_row['Source_Name'], purchase_row['Destination_Name']))
+            'purchase_communication_results/{}_group_structure_for_{}_{}_{}_where_repeat_meeting_attendee_found'
+            .format(analysis_type,
+                    purchase_row['TimeStamp'], 
+                    purchase_row['Source_Names'], 
+                    purchase_row['Destination_Names']))
+        
+        meeting_df.to_csv('purchase_communication_results/{}_meeting_info_{}_{}_{}'
+                          .format(analysis_type,
+                                  purchase_row['TimeStamp'], 
+                                  purchase_row['Source_Names'], 
+                                  purchase_row['Destination_Names']))
+            
+        top_ten_comms.to_csv('purchase_communication_results/{}_top_ten_comms_{}_{}_{}.csv'.format(analysis_type,
+                                                                                                 purchase_row['TimeStamp'],         
+                                                                                                 purchase_row['Source_Names'], 
+                                                                                                 purchase_row['Destination_Names']))
     
     
-    print('Meetings post second filter {}'.format(meeting_df['Etype'].count()))
-    output_dict['second_meeting_count'].append(meeting_df['Etype'].count())
+    print('Meetings found {}'.format(meeting_df['Etype'].count()))
+    output_dict['meeting_count'].append(meeting_df['Etype'].count())
     output_dict['found_unique_meeting_repeat'].append(found_unique_meeting_repeat)
     
-    meeting_df.to_csv('purchase_communication_results/second_pass_meeting_info_{}_{}_{}'
-                                    .format(purchase_row['TimeStamp'], 
-                                            purchase_row['Source'], 
-                                            purchase_row['Destination']))
-    print(top_ten_comms)
     
-    
-    top_ten_comms.to_csv('purchase_communication_results/top_ten_comms_{}_{}_{}.csv'.format(purchase_row['TimeStamp'], 
-                                                             purchase_row['Source'], 
-                                                             purchase_row['Destination']))
-    
+
+    temp_df = temp_df.append(purchase_row)
     temp_df.sort_values(by='TimeStamp', inplace=True)
+    
     describe_network_interactions(temp_df, purchase_row, output_dict,
                                   suspicious_indicator)
+    
+    return temp_df
     
 def time_filter_df(input_df, time_forward, time_backward, purchase_time):
     filtered_df = input_df.copy()
     start_time = purchase_time - time_backward
     stop_time  = purchase_time + time_forward
-    filtered_df = filtered_df[(filtered_df['TimeStamp'] > start_time) &
+    filtered_df = filtered_df.loc[(filtered_df['TimeStamp'] > start_time) &
                       (filtered_df['TimeStamp'] < stop_time)]
     return filtered_df
 
@@ -182,7 +195,7 @@ def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious
     unique_source_dest = np.concatenate((temp_df['Source'].unique(), temp_df['Destination'].unique()))
     unique_source_dest = np.unique(unique_source_dest)
     
-    primary_dest_int = temp_df[(temp_df['Destination'] == purchase_row['Destination']) | 
+    primary_dest_int = temp_df.loc[(temp_df['Destination'] == purchase_row['Destination']) | 
                                 (temp_df['Source'] == purchase_row['Destination'])]['Destination'].count()
 
     mean_dest = temp_df['Destination'].value_counts().mean()
