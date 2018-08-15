@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 import add_names_to_df as get_names_from_company_index
 
+<<<<<<< HEAD
 '''
 0 is for calls
 1 is for emails
@@ -16,6 +17,15 @@ import add_names_to_df as get_names_from_company_index
 3 is for meetings
 '''
 def time_filter_one_layer(purchase_row, input_df, filename, replace_dict):
+=======
+
+def compare_confirmed_suspicious_in_larger_data_set(main_df, suspicious_df, sus_purchase_row):
+    print('test')
+    
+def purchase_analysis(purchase_row, input_df, layers, output_dict, suspicious_indicator):
+    ##We will want to get all of their interactions that occured within a one month timeframe
+    look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator)
+>>>>>>> f15579f7e41450eddeb4daf09f1828e973c7ef5d
     source = purchase_row['Source']
     destination = purchase_row['Destination']
     purchase_time = purchase_row['TimeStamp']
