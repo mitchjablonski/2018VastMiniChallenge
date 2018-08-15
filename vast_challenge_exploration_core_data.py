@@ -138,8 +138,8 @@ if __name__ == '__main__':
     replace_dict = {0:'calls',1:'emails',2:'purchases',3:'meetings'}
     use_preprocess = True
     deep_purchase_analysis = True
-    data_describe_processing = True
-    compare_purchase_gail = True
+    data_describe_processing = False
+    compare_purchase_gail = False
     build_network_graph = False
     analyze_full_dataset = True
     described_data, purchases_described = _main(columns, data_types, replace_dict,
