@@ -26,13 +26,14 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     sus_df.sort_values('full_date', inplace=True)
     
     suspicious_conf = 1
-    layers = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, 
+    layers, unique_mtg_attendees = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, 
                                                           output_dict, suspicious_conf)
 
     filename = 'suspected_suspicious/confirmed_suspicious.csv'    
     sus_analysis_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers,
                                                                 output_dict, suspicious_conf, 
-                                                                filename, replace_dict)
+                                                                filename, replace_dict,
+                                                                unique_mtg_attendees)
     
     if build_network_graph:
         perform_network_analysis(sus_analysis_df)
@@ -41,7 +42,8 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     filename = 'suspected_suspicious/confirmed_suspicious_full_set.csv'
     sus_analysis_full_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, main_df, layers, 
                                                                      output_dict, suspicious_conf, 
-                                                                     filename, replace_dict)
+                                                                     filename, replace_dict,
+                                                                     unique_mtg_attendees)
     
     if build_network_graph:
         perform_network_analysis(sus_analysis_full_df)
@@ -50,9 +52,9 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     
     print('only_sus_df')
     #return gather_purchase_metrics.determine_metrics_for_purchase(sus_analysis_df), layers
-    return layers
+    return layers, unique_mtg_attendees
 
-def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_graph, output_dict):
+def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_graph, output_dict, unique_mtg_attendees):
     other_suspicious = pd.read_csv('Other_suspicious_purchases.csv')
     other_suspicious.rename(columns={'Dest':'Destination','Time':'TimeStamp'}, inplace=True)
     other_suspicious = dt_converter.convert_time(other_suspicious)
@@ -63,12 +65,13 @@ def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_gr
                                                                                    rows['TimeStamp']))
         analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
                                                                 output_dict, suspicious_conf, 
-                                                                filename, replace_dict)
+                                                                filename, replace_dict,
+                                                                unique_mtg_attendees)
         if build_network_graph:
             perform_network_analysis(analysis_df)
         #print(gather_purchase_metrics.determine_metrics_for_purchase(analysis_df))
 
-def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_network_graph, output_dict):
+def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_network_graph, output_dict, unique_mtg_attendees):
     purchase_df.reset_index(inplace=True)
     print('In all purchase region, not logging all runs on')
     suspicious_conf = -1
@@ -80,7 +83,8 @@ def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_netw
                                                                        rows['TimeStamp']))
         analysis_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
                                                                 output_dict, suspicious_conf, 
-                                                                filename, replace_dict)
+                                                                filename, replace_dict,
+                                                                unique_mtg_attendees)
         if build_network_graph:
             perform_network_analysis(analysis_df)
 

@@ -89,14 +89,18 @@ def perform_deep_purchase_analysis(columns, replace_dict, build_network_graph, a
     main_df['full_date'] = pd.to_datetime(main_df['full_date'])
     main_df = main_df.sort_values(by='full_date')
     
-    layers = analyze_suspicious_purchases.analyze_confirmed_suspicious(columns, replace_dict, 
+    layers, unique_mtg_attendees = analyze_suspicious_purchases.analyze_confirmed_suspicious(columns, replace_dict, 
                                  main_df, build_network_graph,
                                  output_dict)
     
-    analyze_suspicious_purchases.analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_graph, output_dict)
+    analyze_suspicious_purchases.analyze_suspected_suspicious(main_df, replace_dict, layers, 
+                                                              build_network_graph, output_dict, 
+                                                              unique_mtg_attendees)
     
     if analyze_full_dataset:
-        analyze_suspicious_purchases.analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_network_graph, output_dict)
+        analyze_suspicious_purchases.analyze_all_purchases(main_df, replace_dict, purchase_df, 
+                                                           layers, build_network_graph, output_dict,
+                                                           unique_mtg_attendees)
     
     result_df = pd.DataFrame.from_dict(output_dict, orient='index').transpose()
     result_df.to_csv('purchase_communication_results/deep_purchase_analysis_result_df.csv')
@@ -134,7 +138,7 @@ if __name__ == '__main__':
     replace_dict = {0:'calls',1:'emails',2:'purchases',3:'meetings'}
     use_preprocess = True
     deep_purchase_analysis = True
-    data_describe_processing = True
+    data_describe_processing = False
     compare_purchase_gail = True
     build_network_graph = False
     analyze_full_dataset = False

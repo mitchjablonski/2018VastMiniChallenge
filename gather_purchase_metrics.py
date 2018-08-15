@@ -17,9 +17,12 @@ import add_names_to_df as get_names_from_company_index
 '''
 
 def purchase_analysis(purchase_row, input_df, layers, 
-                      output_dict, suspicious_indicator, filename, replace_dict):
+                      output_dict, suspicious_indicator,
+                      filename, replace_dict, unique_mtg_attendees):
     ##We will want to get all of their interactions that occured within a one month timeframe
-    look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator)
+    look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, 
+                                         output_dict, suspicious_indicator, 
+                                         unique_mtg_attendees)
     source = purchase_row['Source']
     destination = purchase_row['Destination']
     purchase_time = purchase_row['TimeStamp']
@@ -39,7 +42,7 @@ def purchase_analysis(purchase_row, input_df, layers,
     
     ##TODO should this go out another layer?  is there more info there?
     filtered_df = filtered_df.append(purchase_row)
-    record_purchase_informat(filename, filtered_df, replace_dict)
+    record_purchase_information(filename, filtered_df, replace_dict)
 
 def record_purchase_information(filename, data_frame, replace_dict):
     data_frame = data_frame.copy()
@@ -81,13 +84,14 @@ def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicat
         temp_cols, _ = temp_df.shape
     temp_df.sort_values(by='TimeStamp', inplace=True)
     describe_network_interactions(temp_df, purchase_row, output_dict, suspicious_indicator)
-    
+    unique_mtg_attendees = np.concatenate((temp_df['Source'].unique(), temp_df['Destination'].unique()))
+    unique_mtg_attendees = np.unique(unique_mtg_attendees)
     print(layers)
     print('Forcing layers to be 1')
     layers = 1
-    return layers
+    return layers, unique_mtg_attendees
 
-def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator):
+def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator, unique_mtg_attendees):
     temp_layers = 0 
     output_df = input_df.copy()
     
@@ -126,12 +130,14 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
                       (temp_df['Etype'] == 3) ]
     print(temp_df.shape)
     
-    second_meeting_count = temp_df[temp_df['Etype'] == 3]['Etype'].count()
+    meeting_df = temp_df[temp_df['Etype'] == 3]
+    unique_mtg_attendees = np.any(meeting_df['Source'].isin(unique_mtg_attendees) | 
+                                            meeting_df['Destination'].isin(unique_mtg_attendees)) 
     
-    print('Meetings post second filter {}'.format(second_meeting_count))
-    output_dict['second_meeting_count'].append(second_meeting_count)
+    print('Meetings post second filter {}'.format(meeting_df['Etype'].count()))
+    output_dict['second_meeting_count'].append(meeting_df['Etype'].count())
     
-    temp_df[temp_df['Etype'] == 3].to_csv('purchase_communication_results/second_pass_meeting_info_{}_{}_{}'
+    meeting_df.to_csv('purchase_communication_results/second_pass_meeting_info_{}_{}_{}'
                                     .format(purchase_row['TimeStamp'], 
                                             purchase_row['Source'], 
                                             purchase_row['Destination']))
@@ -181,8 +187,6 @@ def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious
     
     output_dict['Source'].append(purchase_row['Source'])
     output_dict['Destination'].append(purchase_row['Destination'])
-    output_dict['Source_Name'].append(purchase_row['Source_Name'])
-    output_dict['Destination_Name'].append(purchase_row['Destination_Name'])
     output_dict['Primary_source_interactions'].append(primary_source_int)
     output_dict['Primary_dest_interactions'].append(primary_dest_int)
     output_dict['Avg_dest_count'].append(mean_dest)
