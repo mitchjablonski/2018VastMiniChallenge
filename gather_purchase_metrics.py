@@ -7,6 +7,14 @@ Created on Mon Aug 13 21:41:48 2018
 import math
 import pandas as pd
 import numpy as np
+import add_names_to_df as get_names_from_company_index
+
+'''
+0 is for calls
+1 is for emails
+2 is for purchases
+3 is for meetings
+'''
 
 def purchase_analysis(purchase_row, input_df, layers, output_dict, suspicious_indicator):
     ##We will want to get all of their interactions that occured within a one month timeframe
@@ -68,7 +76,72 @@ def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicat
     describe_network_interactions(temp_df, purchase_row, output_dict, suspicious_indicator)
     
     print(layers)
+    print('Forcing layers to be 1')
+    layers = 1
     return layers
+
+def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator):
+    temp_layers = 0 
+    output_df = input_df.copy()
+    
+    source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
+    dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
+    
+    temp_df = output_df[source_dest | dest_source]
+    
+    print('Meetings post first filter {}'.format(
+                                            temp_df[temp_df['Etype'] == 3]['Etype'].count()))
+    
+    temp_df[temp_df['Etype'] == 3].to_csv('purchase_communication_results/first_pass_meeting_info_{}_{}_{}'
+                                    .format(purchase_row['TimeStamp'], 
+                                            purchase_row['Source'], 
+                                            purchase_row['Destination']))
+    while temp_layers < layers:
+        source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
+        dest_source = (output_df['Source'].isin(temp_df['Destination'])) | (output_df['Destination'].isin(temp_df['Source']))
+        temp_df = output_df[source_dest | dest_source]
+        #temp_df = output_df[source_dest]
+        temp_layers += 1
+        
+    temp_df = get_names_from_company_index.add_names_to_data_frame(temp_df)
+    temp_dest = temp_df['Destination_Names'].value_counts()
+    temp_source = temp_df['Source_Names'].value_counts()
+    all_comms = temp_source.add(temp_dest, fill_value = 0)
+    top_ten_comms = all_comms.sort_values(ascending=False)[:10]
+    common_users = all_comms[all_comms > 1].index.values
+    ##In common users for source and dest, or a purchase or meeting
+    
+    print(temp_df.shape)
+    temp_df = temp_df[((temp_df['Source_Names'].isin(common_users)) & 
+                      (temp_df['Destination_Names'].isin(common_users))) |
+                      (temp_df['Etype'] == 2) | 
+                      (temp_df['Etype'] == 3) ]
+    print(temp_df.shape)
+    
+    print('Meetings post second filter {}'.format(
+                                            temp_df[temp_df['Etype'] == 3]['Etype'].count()))
+    
+    temp_df[temp_df['Etype'] == 3].to_csv('purchase_communication_results/second_pass_meeting_info_{}_{}_{}'
+                                    .format(purchase_row['TimeStamp'], 
+                                            purchase_row['Source'], 
+                                            purchase_row['Destination']))
+    print(top_ten_comms)
+    
+    
+    top_ten_comms.to_csv('top_ten_comms_{}_{}_{}.csv'.format(purchase_row['TimeStamp'], 
+                                                             purchase_row['Source'], 
+                                                             purchase_row['Destination']))
+    
+    describe_network_interactions(temp_df, purchase_row, output_dict,
+                                  suspicious_indicator)
+    
+def time_filter_df(input_df, time_forward, time_backward, purchase_time):
+    filtered_df = input_df.copy()
+    start_time = purchase_time - time_backward
+    stop_time  = purchase_time + time_forward
+    filtered_df = filtered_df[(filtered_df['TimeStamp'] > start_time) &
+                      (filtered_df['TimeStamp'] < stop_time)]
+    return filtered_df
 
 def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious_indicator):
     row, columns = temp_df.shape
@@ -115,53 +188,3 @@ def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious
     output_dict['mean_rolling_window'].append(rolling_window_counts.mean())
     output_dict['max_rolling_window'].append(rolling_window_counts.max())
     output_dict['min_rolling_window'].append(rolling_window_counts.min())
-    
-
-def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator):
-    temp_layers = 0 
-    output_df = input_df.copy()
-    ##TODO is time limiting good here?
-    ##Our inital data set only includes a full year behind, and one year ahead
-    seconds_in_month = int(2.628e+6)
-    one_year_back = seconds_in_month*12
-    six_months_fwrd = seconds_in_month*6
-    seconds_in_five_days = int(432000)
-    
-    ##Do the inital pass with only a 5 day window, and do the second pass with
-    #a 1 yr/six month window
-    minimal_time_df = time_filter_df(output_df, seconds_in_five_days, seconds_in_five_days, purchase_row['TimeStamp'])
-    ##TODO
-    source_dest = (minimal_time_df['Source'].isin([purchase_row['Source']])) | (minimal_time_df['Destination'].isin([purchase_row['Destination']]))
-    dest_source = (minimal_time_df['Source'].isin([purchase_row['Destination']])) | (minimal_time_df['Destination'].isin([purchase_row['Source']]))
-    temp_df = minimal_time_df[source_dest | dest_source]
-    #temp_df = output_df[source_dest]
-    while temp_layers < layers:
-        output_df = time_filter_df(output_df, six_months_fwrd, one_year_back, purchase_row['TimeStamp'])
-        source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
-        dest_source = (output_df['Source'].isin(temp_df['Destination'])) | (output_df['Destination'].isin(temp_df['Source']))
-        temp_df = output_df[source_dest | dest_source]
-        #temp_df = output_df[source_dest]
-        temp_layers += 1
-        
-    temp_dest = temp_df['Destination'].value_counts()
-    temp_source = temp_df['Source'].value_counts()
-    all_comms = temp_source.add(temp_dest, fill_value = 0)
-    common_users = all_comms[all_comms > 5].index.values
-    ##In common users for source and dest, or a purchase or meeting
-    print(temp_df.shape)
-    temp_df = temp_df[((temp_df['Source'].isin(common_users)) & 
-                      (temp_df['Destination'].isin(common_users))) |
-                      (temp_df['Etype'] == 2) | 
-                      (temp_df['Etype'] == 3) ]
-    print(temp_df.shape)
-    
-    describe_network_interactions(temp_df, purchase_row, output_dict,
-                                  suspicious_indicator)
-    
-def time_filter_df(input_df, time_forward, time_backward, purchase_time):
-    filtered_df = input_df.copy()
-    start_time = purchase_time - time_backward
-    stop_time  = purchase_time + time_forward
-    filtered_df = filtered_df[(filtered_df['TimeStamp'] > start_time) &
-                      (filtered_df['TimeStamp'] < stop_time)]
-    return filtered_df
