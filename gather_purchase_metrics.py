@@ -67,8 +67,6 @@ def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicat
     
     describe_network_interactions(temp_df, purchase_row, output_dict, suspicious_indicator)
     
-    print('Forcing layers to be 1')
-    layers=1
     print(layers)
     return layers
 
@@ -79,69 +77,44 @@ def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious
     rolling_window_counts = new_df.rolling(window='8D', min_periods=1)['TimeStamp'].count()
     primary_source_int = temp_df[(temp_df['Destination'] == purchase_row['Source']) | 
                                     (temp_df['Source'] == purchase_row['Source'])]['Source'].count()
-    #if ((row < 12000) and row > 20 and (rolling_window_counts.max() < 300) and
-    #           primary_source_int < 80):  ##Our code has return at most 8000 for our dataset
-    if True:
-        temp_df['full_date'] = pd.to_datetime(temp_df['full_date'])
-        temp_df.sort_values(by='full_date', inplace=True)
-        time_between_interactions  = temp_df['full_date'].diff()
-        rolling_diff  = temp_df['full_date'].diff(periods=5)
+    
+    temp_df['full_date'] = pd.to_datetime(temp_df['full_date'])
+    temp_df.sort_values(by='full_date', inplace=True)
+    time_between_interactions  = temp_df['full_date'].diff()
+    rolling_diff  = temp_df['full_date'].diff(periods=5)
 
-        '''
-        print('Mean time between interactions {}'.format(time_between_interactions.mean()))
-        print('Max time between interactions {}'.format(time_between_interactions.max()))
-        print('Min time between interactions {}'.format(time_between_interactions.min()))
-        print('Mean time rolling_diffs {}'.format(rolling_diff.mean()))
-        print('Max time rolling_diffs {}'.format(rolling_diff.max()))
-        print('Min time rolling_diffs {}'.format(rolling_diff.min()))
+    unique_source_dest = np.concatenate((temp_df['Source'].unique(), temp_df['Destination'].unique()))
+    unique_source_dest = np.unique(unique_source_dest)
     
+    primary_dest_int = temp_df[(temp_df['Destination'] == purchase_row['Destination']) | 
+                                (temp_df['Source'] == purchase_row['Destination'])]['Destination'].count()
 
-        print('Mean number of entries in window {}'.format(rolling_window_counts.mean()))
-        print('Max number of entries in window {}'.format(rolling_window_counts.max()))
-        print('Min number of entries in window {}'.format(rolling_window_counts.min()))
-        '''
+    mean_dest = temp_df['Destination'].value_counts().mean()
+    mean_source = temp_df['Source'].value_counts().mean()
+    unique_source = temp_df['Source'].nunique()
+    unique_dest = temp_df['Destination'].nunique()
+    tot_entries = temp_df['Source'].count()
     
-        unique_source_dest = np.concatenate((temp_df['Source'].unique(), temp_df['Destination'].unique()))
-        unique_source_dest = np.unique(unique_source_dest)
-        
-        primary_dest_int = temp_df[(temp_df['Destination'] == purchase_row['Destination']) | 
-                                    (temp_df['Source'] == purchase_row['Destination'])]['Destination'].count()
-    
-        mean_dest = temp_df['Destination'].value_counts().mean()
-        mean_source = temp_df['Source'].value_counts().mean()
-        unique_source = temp_df['Source'].nunique()
-        unique_dest = temp_df['Destination'].nunique()
-        tot_entries = temp_df['Source'].count()
-        '''
-        print('Primary source interactions {}'.format(primary_source_int))
-        print('Primary dest interactions {}'.format(primary_dest_int))
-        print('Average dest count {}'.format(mean_dest))
-        print('Average source count {}'.format(mean_source))
-        print('Number unique Sources {}'.format(unique_source))
-        print('Number Unique Destination {}'.format(unique_dest))
-        print('Unique combined source and dest {}'.format(unique_source_dest.size))
-        print('Total Number of entries {}'.format(tot_entries))
-        '''
-        output_dict['Source'].append(purchase_row['Source'])
-        output_dict['Destination'].append(purchase_row['Destination'])
-        output_dict['Primary_source_interactions'].append(primary_source_int)
-        output_dict['Primary_dest_interactions'].append(primary_dest_int)
-        output_dict['Avg_dest_count'].append(mean_dest)
-        output_dict['Avg_source_count'].append(mean_source)
-        output_dict['num_uniq_source'].append(unique_source)
-        output_dict['num_uniq_dest'].append(unique_dest)
-        output_dict['combined_unique'].append(unique_source_dest.size)
-        output_dict['total_entires'].append(tot_entries)
-        output_dict['suspicious_indicator'].append(suspicious_indicator)
-        output_dict['mean_time_btwn'].append(time_between_interactions.mean())
-        output_dict['max_time_btwn'].append(time_between_interactions.max())
-        output_dict['min_time_btwn'].append(time_between_interactions.min())
-        output_dict['mean_rolling_diff'].append(rolling_diff.mean())
-        output_dict['max_rolling_diff'].append(rolling_diff.max())
-        output_dict['min_rolling_diff'].append(rolling_diff.min())
-        output_dict['mean_rolling_window'].append(rolling_window_counts.mean())
-        output_dict['max_rolling_window'].append(rolling_window_counts.max())
-        output_dict['min_rolling_window'].append(rolling_window_counts.min())
+    output_dict['Source'].append(purchase_row['Source'])
+    output_dict['Destination'].append(purchase_row['Destination'])
+    output_dict['Primary_source_interactions'].append(primary_source_int)
+    output_dict['Primary_dest_interactions'].append(primary_dest_int)
+    output_dict['Avg_dest_count'].append(mean_dest)
+    output_dict['Avg_source_count'].append(mean_source)
+    output_dict['num_uniq_source'].append(unique_source)
+    output_dict['num_uniq_dest'].append(unique_dest)
+    output_dict['combined_unique'].append(unique_source_dest.size)
+    output_dict['total_entires'].append(tot_entries)
+    output_dict['suspicious_indicator'].append(suspicious_indicator)
+    output_dict['mean_time_btwn'].append(time_between_interactions.mean())
+    output_dict['max_time_btwn'].append(time_between_interactions.max())
+    output_dict['min_time_btwn'].append(time_between_interactions.min())
+    output_dict['mean_rolling_diff'].append(rolling_diff.mean())
+    output_dict['max_rolling_diff'].append(rolling_diff.max())
+    output_dict['min_rolling_diff'].append(rolling_diff.min())
+    output_dict['mean_rolling_window'].append(rolling_window_counts.mean())
+    output_dict['max_rolling_window'].append(rolling_window_counts.max())
+    output_dict['min_rolling_window'].append(rolling_window_counts.min())
     
 
 def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, suspicious_indicator):
