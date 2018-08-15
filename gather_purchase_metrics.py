@@ -123,19 +123,25 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     common_users = all_comms[all_comms > 1].index.values
     ##In common users for source and dest, or a purchase or meeting
     
-    print(temp_df.shape)
     temp_df = temp_df[((temp_df['Source_Names'].isin(common_users)) & 
                       (temp_df['Destination_Names'].isin(common_users))) |
                       (temp_df['Etype'] == 2) | 
                       (temp_df['Etype'] == 3) ]
-    print(temp_df.shape)
     
     meeting_df = temp_df[temp_df['Etype'] == 3]
-    unique_mtg_attendees = np.any(meeting_df['Source'].isin(unique_mtg_attendees) | 
+    found_unique_meeting_repeat = np.any(meeting_df['Source'].isin(unique_mtg_attendees) | 
                                             meeting_df['Destination'].isin(unique_mtg_attendees)) 
+    if found_unique_meeting_repeat:
+        print('Repeat Unique Meeting Attendee Found for Source {} Dest {}'.format(purchase_row['Source_Names'], 
+                                                                                  purchase_row['Destination_Names']))
+        temp_df.to_csv(
+            'purchase_communication_results/group_structure_for_{}_{}_{}_where_repeat_meeting_attendee_found'
+            .format(purchase_row['TimeStamp'], purchase_row['Source_Name'], purchase_row['Destination_Name']))
+    
     
     print('Meetings post second filter {}'.format(meeting_df['Etype'].count()))
     output_dict['second_meeting_count'].append(meeting_df['Etype'].count())
+    output_dict['found_unique_meeting_repeat'].append(found_unique_meeting_repeat)
     
     meeting_df.to_csv('purchase_communication_results/second_pass_meeting_info_{}_{}_{}'
                                     .format(purchase_row['TimeStamp'], 
