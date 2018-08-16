@@ -105,10 +105,25 @@ def perform_deep_purchase_analysis(columns, replace_dict, build_network_graph, a
     result_df = pd.DataFrame.from_dict(output_dict, orient='index').transpose()
     result_df.to_csv('purchase_communication_results/deep_purchase_analysis_result_df.csv')
 
+def perform_meeting_analysis(use_preprocess, columns):
+    data = 'meetings'
+    meeting_data = load_data(use_preprocess, data, columns)
+    unique_source_dest = np.concatenate((meeting_data['Source'].unique(), meeting_data['Destination'].unique()))
+    unique_source_dest = np.unique(unique_source_dest)
+    meeting_data = get_names_from_company_index.add_names_to_data_frame(meeting_data)
+    temp_dest = meeting_data['Destination_Names'].value_counts()
+    temp_source = meeting_data['Source_Names'].value_counts()
+    all_comms = temp_source.add(temp_dest, fill_value = 0)
+    meeting_attendees = all_comms.sort_values(ascending=False)
+    temp_dest.to_csv('meeting_results/meeting_destination_with_counts.csv')
+    temp_source.to_csv('meeting_results/meeting_source_with_counts.csv')
+    meeting_attendees.to_csv('meeting_results/meeting_attendees_with_counts.csv')
+    
+
 def _main(columns, data_types, replace_dict,
           use_preprocess, deep_purchase_analysis, 
           data_describe_processing, compare_purchase_gail,
-          build_network_graph, analyze_full_dataset):
+          build_network_graph, analyze_full_dataset, analyze_meeting_data):
     
     described_data = pd.DataFrame()
     purchases_described = pd.DataFrame()
@@ -128,6 +143,9 @@ def _main(columns, data_types, replace_dict,
     if deep_purchase_analysis:
         perform_deep_purchase_analysis(columns, replace_dict, build_network_graph, analyze_full_dataset)
     
+    if analyze_meeting_data:
+        perform_meeting_analysis(use_preprocess, columns)
+    
     return described_data, purchases_described
     
 #Data is over a time period of 2.5yrs
@@ -142,9 +160,10 @@ if __name__ == '__main__':
     compare_purchase_gail = False
     build_network_graph = False
     analyze_full_dataset = False
+    analyze_meeting_data = True
     described_data, purchases_described = _main(columns, data_types, replace_dict,
                                                 use_preprocess, deep_purchase_analysis, 
                                                 data_describe_processing, compare_purchase_gail,
-                                                build_network_graph, analyze_full_dataset)
+                                                build_network_graph, analyze_full_dataset, analyze_meeting_data)
         
     
