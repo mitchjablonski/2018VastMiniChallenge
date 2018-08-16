@@ -131,8 +131,8 @@ def apply_common_user_or_etype_rule(input_df):
     common_user_filter = ((temp_df['Source_Names'].isin(common_users)) &
                       (temp_df['Destination_Names'].isin(common_users)))
     
-    common_meeting_filter = (temp_df['Etype'] == 3 & (temp_df['Source_Names'].isin(common_users |
-                              temp_df['Destination_Names'].isin(common_users))))
+    common_meeting_filter = (temp_df['Etype'] == 3 & (temp_df['Source_Names'].isin(common_users) |
+                              temp_df['Destination_Names'].isin(common_users)))
     
     temp_df = temp_df.loc[common_user_filter | common_meeting_filter]
     
