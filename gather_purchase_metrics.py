@@ -119,6 +119,18 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     
     temp_df = output_df.loc[source_dest | dest_source]
     
+    if temp_df.loc[temp_df['Etype'] == 3][0].count() > 0:
+        print('Meeting Found on first pass for Source {} Dest {} at time {}'.format(
+                purchase_row['Source_Names'],                                                                   
+                purchase_row['Destination_Names'],
+                purchase_row['TimeStamp']))
+        temp_df.to_csv(
+            'purchase_communication_results/{}_group_structure_for_{}_{}_{}_where_meeting_found_first_pass.csv'
+            .format(analysis_type,
+                    purchase_row['TimeStamp'], 
+                    purchase_row['Source_Names'], 
+                    purchase_row['Destination_Names']))
+    
     while temp_layers < layers:
         source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
         dest_source = (output_df['Source'].isin(temp_df['Destination'])) | (output_df['Destination'].isin(temp_df['Source']))
@@ -142,28 +154,24 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     meeting_df = temp_df.loc[temp_df['Etype'] == 3]
     found_unique_meeting_repeat = np.any(meeting_df['Source'].isin(unique_mtg_attendees) | 
                                             meeting_df['Destination'].isin(unique_mtg_attendees)) 
-    if found_unique_meeting_repeat:
-        print('{} Repeat Unique Meeting Attendee Found for Source {} Dest {}'.format(analysis_type,
-                                                                                  purchase_row['Source_Names'], 
-                                                                                  purchase_row['Destination_Names']))
         
-        temp_df.to_csv(
-            'purchase_communication_results/{}_group_structure_for_{}_{}_{}_where_repeat_meeting_attendee_found'
-            .format(analysis_type,
-                    purchase_row['TimeStamp'], 
-                    purchase_row['Source_Names'], 
-                    purchase_row['Destination_Names']))
+    temp_df.to_csv(
+        'purchase_communication_results/{}_group_structure_for_{}_{}_{}_where_repeat_meeting_attendee_found'
+        .format(analysis_type,
+                purchase_row['TimeStamp'], 
+                purchase_row['Source_Names'], 
+                purchase_row['Destination_Names']))
+    
+    meeting_df.to_csv('purchase_communication_results/{}_meeting_info_{}_{}_{}'
+                      .format(analysis_type,
+                              purchase_row['TimeStamp'], 
+                              purchase_row['Source_Names'], 
+                              purchase_row['Destination_Names']))
         
-        meeting_df.to_csv('purchase_communication_results/{}_meeting_info_{}_{}_{}'
-                          .format(analysis_type,
-                                  purchase_row['TimeStamp'], 
-                                  purchase_row['Source_Names'], 
-                                  purchase_row['Destination_Names']))
-            
-        top_ten_comms.to_csv('purchase_communication_results/{}_top_ten_comms_{}_{}_{}.csv'.format(analysis_type,
-                                                                                                 purchase_row['TimeStamp'],         
-                                                                                                 purchase_row['Source_Names'], 
-                                                                                                 purchase_row['Destination_Names']))
+    top_ten_comms.to_csv('purchase_communication_results/{}_top_ten_comms_{}_{}_{}.csv'.format(analysis_type,
+                                                                                             purchase_row['TimeStamp'],         
+                                                                                             purchase_row['Source_Names'], 
+                                                                                             purchase_row['Destination_Names']))
     
     
     print('Meetings found {}'.format(meeting_df['Etype'].count()))
