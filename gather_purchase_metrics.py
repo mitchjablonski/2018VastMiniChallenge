@@ -119,6 +119,11 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
     
     temp_df = output_df.loc[source_dest | dest_source]
+    print('Making original purchase Etype 5')
+    purchase_row['Etype'] = 5
+    temp_df = temp_df.append(purchase_row)
+
+    
     first_pass_meeting = False
     
     if temp_df.loc[temp_df['Etype'] == 3]['Source'].count() > 0:
@@ -141,18 +146,21 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
         #temp_df = output_df[source_dest]
         temp_layers += 1
         
-    temp_df = get_names_from_company_index.add_names_to_data_frame(temp_df)
     temp_dest = temp_df['Destination_Names'].value_counts()
     temp_source = temp_df['Source_Names'].value_counts()
     all_comms = temp_source.add(temp_dest, fill_value = 0)
     top_ten_comms = all_comms.sort_values(ascending=False)[:10]
     common_users = all_comms[all_comms > 1].index.values
     ##In common users for source and dest, or a purchase or meeting
+    ##
+    ##Drop anyone with less than 1 comm not in source and dest?
+    ##Currently getting for common in source or dest
     
-    temp_df = temp_df.loc[((temp_df['Source_Names'].isin(common_users)) & 
+    temp_df = temp_df.loc[((temp_df['Source_Names'].isin(common_users)) |
                       (temp_df['Destination_Names'].isin(common_users))) |
-                      (temp_df['Etype'] == 2) | 
+                      (temp_df['Etype'] == 2) & 
                       (temp_df['Etype'] == 3) ]
+    ###
     
     meeting_df = temp_df.loc[temp_df['Etype'] == 3]
     found_unique_meeting_repeat = np.any(meeting_df['Source'].isin(unique_mtg_attendees) | 
@@ -184,7 +192,6 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     
     
 
-    temp_df = temp_df.append(purchase_row)
     temp_df.sort_values(by='TimeStamp', inplace=True)
     
     describe_network_interactions(temp_df, purchase_row, output_dict,
@@ -220,6 +227,8 @@ def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious
     
     output_dict['Source'].append(purchase_row['Source'])
     output_dict['Destination'].append(purchase_row['Destination'])
+    output_dict['Source_Names'].append(purchase_row['Source_Names'])
+    output_dict['Destination_Names'].append(purchase_row['Destination_Names'])
     output_dict['Primary_source_interactions'].append(primary_source_int)
     output_dict['Primary_dest_interactions'].append(primary_dest_int)
     output_dict['Avg_dest_count'].append(mean_dest)

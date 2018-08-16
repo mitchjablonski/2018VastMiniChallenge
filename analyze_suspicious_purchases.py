@@ -31,20 +31,10 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     trash_dict = defaultdict(list)
     layers, unique_mtg_attendees = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, 
                                                           trash_dict, suspicious_conf)
-    print('only_sus_df')
-    filename = 'confirmed_suspicious/confirmed_suspicious.csv'  
-    analysis_type = 'confirmed_suspicious'
-    network_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers,
-                                                           trash_dict, suspicious_conf, 
-                                                           filename, replace_dict,
-                                                           unique_mtg_attendees,
-                                                           analysis_type)
-    
-    if build_network_graph:
-        perform_network_analysis(network_df)
 
     print('full_df')
     filename = 'confirmed_suspicious/confirmed_suspicious_full_set.csv'
+    analysis_type = 'confirmed_suspicious'
     network_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, main_df, layers, 
                                                            output_dict, suspicious_conf, 
                                                            filename, replace_dict,

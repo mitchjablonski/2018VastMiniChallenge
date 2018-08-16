@@ -89,6 +89,7 @@ def perform_deep_purchase_analysis(columns, replace_dict, build_network_graph, a
     output_dict = defaultdict(list)
     main_df['full_date'] = pd.to_datetime(main_df['full_date'])
     main_df = main_df.sort_values(by='full_date')
+    main_df = get_names_from_company_index.add_names_to_data_frame(main_df)
     
     layers, unique_mtg_attendees = analyze_suspicious_purchases.analyze_confirmed_suspicious(columns, replace_dict, 
                                  main_df, build_network_graph,
