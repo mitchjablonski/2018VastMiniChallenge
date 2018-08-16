@@ -9,6 +9,7 @@ from __future__ import division
 from __future__ import print_function
 
 import pandas as pd
+import numpy as np
 from collections import defaultdict
 
 import date_time_conversion as dt_converter
