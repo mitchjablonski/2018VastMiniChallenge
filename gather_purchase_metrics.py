@@ -108,21 +108,37 @@ def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicat
     #layers = 1
     return layers, unique_mtg_attendees
 
+def get_communications_counts(input_df):
+    temp_df = input_df.copy()
+    temp_dest = temp_df['Destination_Names'].value_counts()
+    temp_source = temp_df['Source_Names'].value_counts()
+    all_comms = temp_source.add(temp_dest, fill_value = 0)
+    all_comms = all_comms.sort_values(ascending=False)
+    return all_comms
+
 def apply_common_user_or_etype_rule(input_df):
     #In common users for source or dest, or it is a meeting
     ##Drop anyone with less than 1 comm not in source and dest?
     ##We need our source and destination to appear more than once, or have it be 
     #an instance of a meeting
     temp_df = input_df.copy()
-    temp_dest = temp_df['Destination_Names'].value_counts()
-    temp_source = temp_df['Source_Names'].value_counts()
-    all_comms = temp_source.add(temp_dest, fill_value = 0)
-    top_ten_comms = all_comms.sort_values(ascending=False)
-    common_users = all_comms[all_comms > 1].index.values
-    temp_df = temp_df.loc[((temp_df['Source_Names'].isin(common_users)) &
-                      (temp_df['Destination_Names'].isin(common_users))) |
-                      (temp_df['Etype'] == 3) ]
-    return temp_df, top_ten_comms
+    all_comms_pre_filter = get_communications_counts(temp_df)
+    ##We want people who are communicating in our group, but we want to avoid 
+    ##Our group exploding due to a well connected person, we might have one meeting
+    ##With a very suspicious person, but that person may be too well connect
+    ##Thus corrupting our dat
+    common_users = all_comms_pre_filter[(all_comms_pre_filter > 2) & (all_comms_pre_filter < 3000)].index.values
+    common_user_filter = ((temp_df['Source_Names'].isin(common_users)) &
+                      (temp_df['Destination_Names'].isin(common_users)))
+    
+    common_meeting_filter = (temp_df['Etype'] == 3 & (temp_df['Source_Names'].isin(common_users |
+                              temp_df['Destination_Names'].isin(common_users))))
+    
+    temp_df = temp_df.loc[common_user_filter | common_meeting_filter]
+    
+    all_comms_post_filter = get_communications_counts(temp_df)
+    
+    return temp_df, all_comms_pre_filter, all_comms_post_filter
     
 def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, 
                                          suspicious_indicator, unique_mtg_attendees,
@@ -140,29 +156,30 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     purchase_row['Etype'] = 5
 
     ##We have either communicated with this person more than once, or we communicated with them in a meeting.
-    temp_df, top_ten_comms = apply_common_user_or_etype_rule(temp_df)
+    temp_df, all_comms_pre_filter, all_comms_post_filter = apply_common_user_or_etype_rule(temp_df)
     temp_df = temp_df.append(purchase_row)
     
     first_pass_meeting = False
+    
+    temp_df.to_csv(
+            'purchase_communication_results/{}_group_structure_for_{}_{}_{}_first_pass.csv'
+            .format(analysis_type,
+                    purchase_row['TimeStamp'], 
+                    purchase_row['Source_Names'], 
+                    purchase_row['Destination_Names']))
     
     if temp_df.loc[temp_df['Etype'] == 3]['Source'].count() > 0:
         print('Meeting Found on first pass for Source {} Dest {} at time {}'.format(
                 purchase_row['Source_Names'],                                                                   
                 purchase_row['Destination_Names'],
                 purchase_row['TimeStamp']))
-        temp_df.to_csv(
-            'purchase_communication_results/{}_group_structure_for_{}_{}_{}_where_meeting_found_first_pass.csv'
-            .format(analysis_type,
-                    purchase_row['TimeStamp'], 
-                    purchase_row['Source_Names'], 
-                    purchase_row['Destination_Names']))
         first_pass_meeting = True
     
     while temp_layers < layers:
         source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
         dest_source = (output_df['Source'].isin(temp_df['Destination'])) | (output_df['Destination'].isin(temp_df['Source']))
         temp_df = output_df.loc[source_dest | dest_source]
-        temp_df, top_ten_comms = apply_common_user_or_etype_rule(temp_df)
+        temp_df, all_comms_pre_filter, all_comms_post_filter = apply_common_user_or_etype_rule(temp_df)
         temp_layers += 1
         
     temp_df = temp_df.append(purchase_row)
@@ -186,11 +203,15 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
                               purchase_row['Source_Names'], 
                               purchase_row['Destination_Names']))
         
-    top_ten_comms.to_csv('purchase_communication_results/{}_top_communicators_{}_{}_{}.csv'.format(analysis_type,
+    all_comms_pre_filter.to_csv('purchase_communication_results/{}all_communicators_pre_filter_{}_{}_{}.csv'.format(analysis_type,
                                                                                              purchase_row['TimeStamp'],         
                                                                                              purchase_row['Source_Names'], 
                                                                                              purchase_row['Destination_Names']))
     
+    all_comms_post_filter.to_csv('purchase_communication_results/{}all_communicators_post_filter_{}_{}_{}.csv'.format(analysis_type,
+                                                                                             purchase_row['TimeStamp'],         
+                                                                                             purchase_row['Source_Names'], 
+                                                                                             purchase_row['Destination_Names']))
     
     print('Meetings found {}'.format(meeting_df['Etype'].count()))
     output_dict['meeting_count'].append(meeting_df['Etype'].count())
