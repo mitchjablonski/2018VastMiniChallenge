@@ -6,6 +6,7 @@ Created on Tue Aug 14 21:11:17 2018
 """
 import pandas as pd
 import networkx as nx
+from collections import defaultdict
 
 import gather_purchase_metrics as gather_purchase_metrics
 import date_time_conversion as dt_converter
@@ -27,13 +28,14 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     sus_df.sort_values('full_date', inplace=True)
     
     suspicious_conf = 1
+    trash_dict = defaultdict(list)
     layers, unique_mtg_attendees = gather_purchase_metrics.determine_layers_out(sus_df, sus_purchase_row, 
-                                                          output_dict, suspicious_conf)
+                                                          trash_dict, suspicious_conf)
     print('only_sus_df')
     filename = 'confirmed_suspicious/confirmed_suspicious.csv'  
     analysis_type = 'confirmed_suspicious'
     network_df = gather_purchase_metrics.purchase_analysis(sus_purchase_row, sus_df, layers,
-                                                           output_dict, suspicious_conf, 
+                                                           trash_dict, suspicious_conf, 
                                                            filename, replace_dict,
                                                            unique_mtg_attendees,
                                                            analysis_type)
@@ -80,7 +82,8 @@ def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_gr
 
 def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_network_graph, output_dict, unique_mtg_attendees):
     purchase_df.reset_index(inplace=True)
-    purchase_df = purchase_df.loc[6500:6600]
+    ##Take a small slice of DF to sample.
+    purchase_df = purchase_df.loc[6500:6520]
     purchase_df = get_company_names.add_names_to_data_frame(purchase_df)
     print('In all purchase region, not logging all runs on')
     suspicious_conf = -1
@@ -91,7 +94,7 @@ def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_netw
         filename = ('normal_purchase/normal_purchase_{}_{}_{}.csv'.format(rows['Source'], 
                                                                           rows['Destination'],
                                                                           rows['TimeStamp']))
-            
+        ##WE CRASH HERE WHY?
         network_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
                                                                output_dict, suspicious_conf, 
                                                                filename, replace_dict,
