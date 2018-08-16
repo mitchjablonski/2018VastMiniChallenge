@@ -112,8 +112,9 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
                                          suspicious_indicator, unique_mtg_attendees,
                                          analysis_type):
     temp_layers = 0 
+    seconds_in_a_month = int(2.628e+6)
     output_df = input_df.copy()
-    
+    output_df = output_df[output_df['TimeStamp'] < (purchase_row['TimeStamp'] + seconds_in_a_month*5)]
     source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
     dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
     
