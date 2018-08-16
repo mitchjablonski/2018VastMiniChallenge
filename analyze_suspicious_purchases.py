@@ -68,8 +68,8 @@ def analyze_suspected_suspicious(main_df, replace_dict, layers, build_network_gr
     suspicious_conf = 1
     analysis_type = 'suspected_suspicious'
     for index, rows in other_suspicious.iterrows():
-        filename = ('suspected_suspicious/suspected_suspicous_{}_{}_{}.csv'.format(rows['Source'], 
-                                                                                   rows['Destination'],
+        filename = ('suspected_suspicious/suspected_suspicous_{}_{}_{}.csv'.format(rows['Source_Names'], 
+                                                                                   rows['Destination_Names'],
                                                                                    rows['TimeStamp']))
         network_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
                                                                output_dict, suspicious_conf, 
@@ -91,8 +91,8 @@ def analyze_all_purchases(main_df, replace_dict, purchase_df, layers, build_netw
     for index, rows in purchase_df.iterrows():
         if (index % 1000) == 1:
             print('index {}'.format(index))
-        filename = ('normal_purchase/normal_purchase_{}_{}_{}.csv'.format(rows['Source'], 
-                                                                          rows['Destination'],
+        filename = ('normal_purchase/normal_purchase_{}_{}_{}.csv'.format(rows['Source_Names'], 
+                                                                          rows['Destination_Names'],
                                                                           rows['TimeStamp']))
         ##WE CRASH HERE WHY?
         network_df = gather_purchase_metrics.purchase_analysis(rows, main_df, layers, 
