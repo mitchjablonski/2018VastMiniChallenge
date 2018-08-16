@@ -119,7 +119,7 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     
     temp_df = output_df.loc[source_dest | dest_source]
     
-    if temp_df.loc[temp_df['Etype'] == 3][0].count() > 0:
+    if temp_df.loc[temp_df['Etype'] == 3]['Source'].count() > 0:
         print('Meeting Found on first pass for Source {} Dest {} at time {}'.format(
                 purchase_row['Source_Names'],                                                                   
                 purchase_row['Destination_Names'],
