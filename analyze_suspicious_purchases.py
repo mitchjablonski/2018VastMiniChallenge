@@ -26,6 +26,7 @@ def analyze_confirmed_suspicious(columns, replace_dict, main_df, build_network_g
     sus_df = sus_df.append([email_data, call_data, meeting_data])
     sus_df = dt_converter.convert_time(sus_df)
     sus_df.sort_values('full_date', inplace=True)
+    sus_df = get_company_names.add_names_to_data_frame(sus_df)
     
     suspicious_conf = 1
     trash_dict = defaultdict(list)

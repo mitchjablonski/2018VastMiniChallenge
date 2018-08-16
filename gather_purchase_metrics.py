@@ -104,21 +104,22 @@ def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicat
     unique_mtg_attendees = np.concatenate((temp_df['Source'].unique(), temp_df['Destination'].unique()))
     unique_mtg_attendees = np.unique(unique_mtg_attendees)
     print(layers)
-    print('Forcing layers to be 1')
-    layers = 1
+    #print('Forcing layers to be 1')
+    #layers = 1
     return layers, unique_mtg_attendees
 
 def apply_common_user_or_etype_rule(input_df):
     #In common users for source or dest, or it is a meeting
     ##Drop anyone with less than 1 comm not in source and dest?
-    ##Currently getting for common in source or des
+    ##We need our source and destination to appear more than once, or have it be 
+    #an instance of a meeting
     temp_df = input_df.copy()
     temp_dest = temp_df['Destination_Names'].value_counts()
     temp_source = temp_df['Source_Names'].value_counts()
     all_comms = temp_source.add(temp_dest, fill_value = 0)
-    top_ten_comms = all_comms.sort_values(ascending=False)[:10]
+    top_ten_comms = all_comms.sort_values(ascending=False)
     common_users = all_comms[all_comms > 1].index.values
-    temp_df = temp_df.loc[((temp_df['Source_Names'].isin(common_users)) |
+    temp_df = temp_df.loc[((temp_df['Source_Names'].isin(common_users)) &
                       (temp_df['Destination_Names'].isin(common_users))) |
                       (temp_df['Etype'] == 3) ]
     return temp_df, top_ten_comms
@@ -128,6 +129,7 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
                                          analysis_type):
     temp_layers = 0 
     seconds_in_a_month = int(2.628e+6)
+    purchase_row = purchase_row.copy()
     output_df = input_df.copy()
     output_df = time_filter_df(output_df, seconds_in_a_month*6, seconds_in_a_month*12, purchase_row['TimeStamp'])
     source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
@@ -136,17 +138,10 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     temp_df = output_df.loc[source_dest | dest_source]
     print('Making original purchase Etype 5')
     purchase_row['Etype'] = 5
-    
-    ##In common users for source and dest, or a purchase or meeting
-    ##
-    ##Drop anyone with less than 1 comm not in source and dest?
-    ##Currently getting for common in source or dest
-    
+
     ##We have either communicated with this person more than once, or we communicated with them in a meeting.
     temp_df, top_ten_comms = apply_common_user_or_etype_rule(temp_df)
     temp_df = temp_df.append(purchase_row)
-
-
     
     first_pass_meeting = False
     
@@ -167,10 +162,9 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
         source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
         dest_source = (output_df['Source'].isin(temp_df['Destination'])) | (output_df['Destination'].isin(temp_df['Source']))
         temp_df = output_df.loc[source_dest | dest_source]
-        #temp_df = output_df[source_dest]
+        temp_df, top_ten_comms = apply_common_user_or_etype_rule(temp_df)
         temp_layers += 1
         
-    temp_df, top_ten_comms = apply_common_user_or_etype_rule(temp_df)
     temp_df = temp_df.append(purchase_row)
     
     
@@ -192,7 +186,7 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
                               purchase_row['Source_Names'], 
                               purchase_row['Destination_Names']))
         
-    top_ten_comms.to_csv('purchase_communication_results/{}_top_ten_comms_{}_{}_{}.csv'.format(analysis_type,
+    top_ten_comms.to_csv('purchase_communication_results/{}_top_communicators_{}_{}_{}.csv'.format(analysis_type,
                                                                                              purchase_row['TimeStamp'],         
                                                                                              purchase_row['Source_Names'], 
                                                                                              purchase_row['Destination_Names']))
