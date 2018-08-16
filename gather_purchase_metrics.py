@@ -108,6 +108,21 @@ def determine_layers_out(input_df, purchase_row, output_dict, suspicious_indicat
     layers = 1
     return layers, unique_mtg_attendees
 
+def apply_common_user_or_etype_rule(input_df):
+    #In common users for source or dest, or it is a meeting
+    ##Drop anyone with less than 1 comm not in source and dest?
+    ##Currently getting for common in source or des
+    temp_df = input_df.copy()
+    temp_dest = temp_df['Destination_Names'].value_counts()
+    temp_source = temp_df['Source_Names'].value_counts()
+    all_comms = temp_source.add(temp_dest, fill_value = 0)
+    top_ten_comms = all_comms.sort_values(ascending=False)[:10]
+    common_users = all_comms[all_comms > 1].index.values
+    temp_df = temp_df.loc[((temp_df['Source_Names'].isin(common_users)) |
+                      (temp_df['Destination_Names'].isin(common_users))) |
+                      (temp_df['Etype'] == 3) ]
+    return temp_df, top_ten_comms
+    
 def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, 
                                          suspicious_indicator, unique_mtg_attendees,
                                          analysis_type):
@@ -121,7 +136,16 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     temp_df = output_df.loc[source_dest | dest_source]
     print('Making original purchase Etype 5')
     purchase_row['Etype'] = 5
+    
+    ##In common users for source and dest, or a purchase or meeting
+    ##
+    ##Drop anyone with less than 1 comm not in source and dest?
+    ##Currently getting for common in source or dest
+    
+    ##We have either communicated with this person more than once, or we communicated with them in a meeting.
+    temp_df, top_ten_comms = apply_common_user_or_etype_rule(temp_df)
     temp_df = temp_df.append(purchase_row)
+
 
     
     first_pass_meeting = False
@@ -146,21 +170,9 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
         #temp_df = output_df[source_dest]
         temp_layers += 1
         
-    temp_dest = temp_df['Destination_Names'].value_counts()
-    temp_source = temp_df['Source_Names'].value_counts()
-    all_comms = temp_source.add(temp_dest, fill_value = 0)
-    top_ten_comms = all_comms.sort_values(ascending=False)[:10]
-    common_users = all_comms[all_comms > 1].index.values
-    ##In common users for source and dest, or a purchase or meeting
-    ##
-    ##Drop anyone with less than 1 comm not in source and dest?
-    ##Currently getting for common in source or dest
+    temp_df, top_ten_comms = apply_common_user_or_etype_rule(temp_df)
+    temp_df = temp_df.append(purchase_row)
     
-    temp_df = temp_df.loc[((temp_df['Source_Names'].isin(common_users)) |
-                      (temp_df['Destination_Names'].isin(common_users))) |
-                      (temp_df['Etype'] == 2) & 
-                      (temp_df['Etype'] == 3) ]
-    ###
     
     meeting_df = temp_df.loc[temp_df['Etype'] == 3]
     found_unique_meeting_repeat = np.any(meeting_df['Source'].isin(unique_mtg_attendees) | 
