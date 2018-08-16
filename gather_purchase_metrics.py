@@ -114,7 +114,7 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     temp_layers = 0 
     seconds_in_a_month = int(2.628e+6)
     output_df = input_df.copy()
-    output_df = output_df[output_df['TimeStamp'] < (purchase_row['TimeStamp'] + seconds_in_a_month*5)]
+    output_df = time_filter_df(output_df, seconds_in_a_month*6, seconds_in_a_month*12, purchase_row['TimeStamp'])
     source_dest = (output_df['Source'].isin([purchase_row['Source']])) | (output_df['Destination'].isin([purchase_row['Destination']]))
     dest_source = (output_df['Source'].isin([purchase_row['Destination']])) | (output_df['Destination'].isin([purchase_row['Source']]))
     
@@ -160,13 +160,13 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     
     if first_pass_meeting:
         temp_df.to_csv(
-                'purchase_communication_results/{}_group_structure_for_{}_{}_{}_where_meeting_found_first_pass.csv'
+                'purchase_communication_results/{}_group_structure_for_{}_{}_{}_where_meeting_found_second_pass.csv'
                 .format(analysis_type,
                         purchase_row['TimeStamp'], 
                         purchase_row['Source_Names'], 
                         purchase_row['Destination_Names']))
     
-    meeting_df.to_csv('purchase_communication_results/{}_meeting_info_{}_{}_{}'
+    meeting_df.to_csv('purchase_communication_results/{}_meeting_info_{}_{}_{}.csv'
                       .format(analysis_type,
                               purchase_row['TimeStamp'], 
                               purchase_row['Source_Names'], 
