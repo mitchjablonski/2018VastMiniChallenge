@@ -1,0 +1,26 @@
+calls
+emails
+purchases
+meetings
+determine_layers_out
+2
+full_df
+Making original purchase Etype 5
+Meeting Found on first pass for Source Rosalia Larroque Dest Jenice Savaria at time 1505882733
+Meetings found 10
+Making original purchase Etype 5
+Meetings found 0
+Making original purchase Etype 5
+Meetings found 0
+Making original purchase Etype 5
+Meeting Found on first pass for Source Beth Wilensky Dest Gregory Russell at time 1496425862
+Meetings found 9
+Making original purchase Etype 5
+Meeting Found on first pass for Source Beth Wilensky Dest Gregory Russell at time 1513009592
+Meetings found 7
+Making original purchase Etype 5
+Meetings found 0
+Making original purchase Etype 5
+Meetings found 0
+Making original purchase Etype 5
+Meetings found 0
