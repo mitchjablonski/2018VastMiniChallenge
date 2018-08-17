@@ -14,18 +14,21 @@ import glob
 
 import holoviews.plotting.bokeh
 
-def render_graphs(input_df):
-    N = 8
+def render_graphs(input_df, layer):
     padding = dict(x=(-1.2, 1.2), y=(-1.2, 1.2))
+    purchase_row = my_data.loc[my_data['Etype'] == 5].iloc[0]
+    title_graph = '{}  Layer {}'.format(purchase_row['Source_Names'], layer)
     
-    simple_graph = hv.Graph(((input_df['Source_Names'], input_df['Destination_Names']),)).redim.range(**padding)
-    simple_graph
-    simple_graph.options(inspection_policy='edges')
+    simple_graph = hv.Graph(((input_df['Source_Names'], input_df['Destination_Names']),), label=title_graph).redim.range(**padding)
+    simple_graph()
+    simple_graph.options(inspection_policy='edges', show_title=True)
+    #hv.Layout([simple_graph.relabel(label=title)])
     hv.renderer('bokeh').server_doc(simple_graph)
     
-files = glob.glob('purchase_communication_results/*layer_2.csv')
-for file in files:
-    my_data = pd.read_csv(str(file))
-    render_graphs(my_data)
-    
 hv.extension('bokeh')
+for layer in [1,2,3]: 
+    files = glob.glob('purchase_communication_results/*layer_{}.csv'.format(layer))
+    for file in files:
+        my_data = pd.read_csv(str(file))
+        render_graphs(my_data, layer)
+    
