@@ -184,10 +184,10 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
         temp_df = output_df.loc[source_dest | dest_source]
         temp_df, all_comms_pre_filter, all_comms_post_filter = apply_common_user_or_etype_rule(temp_df)
         temp_layers += 1
+        temp_df = temp_df.append(purchase_row)
         log_communication_network(temp_df, analysis_type, purchase_row['TimeStamp'], 
                               purchase_row['Source_Names'], purchase_row['Destination_Names'], (temp_layers+1))
         
-    temp_df = temp_df.append(purchase_row)
     
     
     meeting_df = temp_df.loc[temp_df['Etype'] == 3]
@@ -261,7 +261,7 @@ def describe_network_interactions(temp_df, purchase_row, output_dict, suspicious
     output_dict['num_uniq_source'].append(unique_source)
     output_dict['num_uniq_dest'].append(unique_dest)
     output_dict['combined_unique'].append(unique_source_dest.size)
-    output_dict['total_entires'].append(tot_entries)
+    output_dict['total_entries'].append(tot_entries)
     output_dict['suspicious_indicator'].append(suspicious_indicator)
     output_dict['mean_time_btwn'].append(time_between_interactions.mean())
     output_dict['max_time_btwn'].append(time_between_interactions.max())
