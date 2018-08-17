@@ -140,6 +140,16 @@ def apply_common_user_or_etype_rule(input_df):
     
     return temp_df, all_comms_pre_filter, all_comms_post_filter
     
+def log_communication_network(input_df, analysis_type, timestamp, 
+                              source_name, dest_name, data_layer):
+    input_df.to_csv(
+            'purchase_communication_results/{}_group_structure_for_{}_{}_{}_layer_{}.csv'
+            .format(analysis_type,
+                    timestamp, 
+                    source_name, 
+                    dest_name,
+                    data_layer))
+
 def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_dict, 
                                          suspicious_indicator, unique_mtg_attendees,
                                          analysis_type):
@@ -159,21 +169,14 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     temp_df, all_comms_pre_filter, all_comms_post_filter = apply_common_user_or_etype_rule(temp_df)
     temp_df = temp_df.append(purchase_row)
     
-    first_pass_meeting = False
-    
-    temp_df.to_csv(
-            'purchase_communication_results/{}_group_structure_for_{}_{}_{}_first_pass.csv'
-            .format(analysis_type,
-                    purchase_row['TimeStamp'], 
-                    purchase_row['Source_Names'], 
-                    purchase_row['Destination_Names']))
+    log_communication_network(temp_df, analysis_type, purchase_row['TimeStamp'], 
+                              purchase_row['Source_Names'], purchase_row['Destination_Names'], (temp_layers+1))
     
     if temp_df.loc[temp_df['Etype'] == 3]['Source'].count() > 0:
         print('Meeting Found on first pass for Source {} Dest {} at time {}'.format(
                 purchase_row['Source_Names'],                                                                   
                 purchase_row['Destination_Names'],
                 purchase_row['TimeStamp']))
-        first_pass_meeting = True
     
     while temp_layers < layers:
         source_dest = (output_df['Source'].isin(temp_df['Source'])) | (output_df['Destination'].isin(temp_df['Destination']))
@@ -181,6 +184,8 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
         temp_df = output_df.loc[source_dest | dest_source]
         temp_df, all_comms_pre_filter, all_comms_post_filter = apply_common_user_or_etype_rule(temp_df)
         temp_layers += 1
+        log_communication_network(temp_df, analysis_type, purchase_row['TimeStamp'], 
+                              purchase_row['Source_Names'], purchase_row['Destination_Names'], (temp_layers+1))
         
     temp_df = temp_df.append(purchase_row)
     
@@ -189,13 +194,6 @@ def look_at_size_of_network_X_layers_out(input_df, purchase_row, layers, output_
     found_unique_meeting_repeat = np.any(meeting_df['Source'].isin(unique_mtg_attendees) | 
                                             meeting_df['Destination'].isin(unique_mtg_attendees)) 
     
-    if first_pass_meeting:
-        temp_df.to_csv(
-                'purchase_communication_results/{}_group_structure_for_{}_{}_{}_where_meeting_found_second_pass.csv'
-                .format(analysis_type,
-                        purchase_row['TimeStamp'], 
-                        purchase_row['Source_Names'], 
-                        purchase_row['Destination_Names']))
     
     meeting_df.to_csv('purchase_communication_results/{}_meeting_info_{}_{}_{}.csv'
                       .format(analysis_type,
